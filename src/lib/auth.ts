@@ -3,26 +3,9 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Resend from "next-auth/providers/resend";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
-import { z } from "zod";
 import { Role } from "@prisma/client";
+import { z } from "zod";
 
-const CONSUMER_EMAIL_DOMAINS = new Set([
-  "gmail.com",
-  "yahoo.com",
-  "hotmail.com",
-  "outlook.com",
-  "icloud.com",
-  "aol.com",
-  "protonmail.com",
-  "me.com",
-  "msn.com",
-  "live.com",
-]);
-
-function isConsumerEmail(email: string): boolean {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return domain ? CONSUMER_EMAIL_DOMAINS.has(domain) : false;
-}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
@@ -158,18 +141,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.phone = dbUser.phone;
           token.onboarded = dbUser.onboarded;
 
-          // Auto-assign CLINICIAN role for non-consumer email domains
-          if (
-            dbUser.email &&
-            !isConsumerEmail(dbUser.email) &&
-            dbUser.role === "PATIENT"
-          ) {
-            await db.user.update({
-              where: { id: user.id },
-              data: { role: Role.CLINICIAN },
-            });
-            token.role = "CLINICIAN";
-          }
         }
       } else if (trigger === "update") {
         // Called from client after role changes (e.g. post-onboarding)
