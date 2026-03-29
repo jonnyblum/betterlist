@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
-import type { ProductCategory } from "@prisma/client";
+import type { ProductCategory, Prisma } from "@prisma/client";
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 
 const VALID_CATEGORIES: ProductCategory[] = [
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     const categoryParam = searchParams.get("category")?.toUpperCase();
     const practiceSlug = searchParams.get("practice")?.slice(0, 100);
 
-    const whereClause: Parameters<typeof db.product.findMany>[0]["where"] = {};
+    const whereClause: Prisma.ProductWhereInput = {};
 
     if (categoryParam && VALID_CATEGORIES.includes(categoryParam as ProductCategory)) {
       whereClause.category = categoryParam as ProductCategory;
