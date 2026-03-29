@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as {
           id: string;
-          metadata?: { recommendationId?: string; patientId?: string };
+          metadata?: { recommendationId?: string; patientId?: string; retailer?: string };
           amount_total?: number;
           line_items?: { data: Array<{ price?: { product?: string }; quantity?: number; amount_total?: number }> };
         };
