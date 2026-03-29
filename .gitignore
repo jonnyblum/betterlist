@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Env files — never commit these
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Prisma
+prisma/migrations/
+
+# Build
+dist/
+
+# OS
+.DS_Store
+
+# Local utility scripts — seed helpers, debug tools, one-off data scripts
+/scripts/
+
+# Logs
+*.log
+npm-debug.log*
