@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Product } from "@prisma/client";
+import type { CatalogProduct } from "@/lib/types/catalog";
 
 interface ProductCardProps {
-  product: Product;
-  onAdd: (product: Product) => void;
+  product: CatalogProduct;
+  onAdd: (product: CatalogProduct) => void;
   isAdded: boolean;
   quantity?: number;
   isPicked?: boolean;

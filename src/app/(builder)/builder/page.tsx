@@ -12,9 +12,10 @@ import { normalizePhone, isValidPhone, getShareUrl } from "@/lib/utils";
 import { getDefaultCategories } from "@/lib/specialty-categories";
 import type { Product } from "@prisma/client";
 import type { KitWithItems } from "@/lib/types/kit";
+import type { CatalogProduct } from "@/lib/types/catalog";
 
 interface CartItem {
-  product: Product;
+  product: CatalogProduct;
   quantity: number;
 }
 
@@ -43,6 +44,8 @@ function BuilderContent() {
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
+  // Maps temporary rf_<ASIN> ids → real DB product ids after background save
+  const rfIdMap = useRef<Map<string, string>>(new Map());
 
   // Load products (always); picks/profile/kits only when signed in
   useEffect(() => {
@@ -112,7 +115,7 @@ function BuilderContent() {
     cartItems.map((i) => [i.product.id, i.quantity])
   );
 
-  const handleAddProduct = useCallback((product: Product) => {
+  const handleAddProduct = useCallback((product: CatalogProduct) => {
     setCartItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {
@@ -120,6 +123,34 @@ function BuilderContent() {
       }
       return [...prev, { product, quantity: 1 }];
     });
+
+    // Background save: persist Rainforest products to DB on first interaction
+    if (product.source === "rainforest") {
+      fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "rainforest",
+          id: product.id,
+          name: product.name,
+          brand: product.brand,
+          imageUrl: product.imageUrl,
+          price: product.price,
+          amazonUrl: product.amazonUrl,
+        }),
+      })
+        .then(async (res) => {
+          if (!res.ok) return;
+          const data = await res.json();
+          const realId: string = data.product?.id;
+          if (realId && realId !== product.id) {
+            rfIdMap.current.set(product.id, realId);
+          }
+        })
+        .catch(() => {
+          // Non-blocking — clinician can still send; id translation happens at send time
+        });
+    }
   }, []);
 
   const handleRemoveItem = useCallback((productId: string) => {
@@ -149,13 +180,28 @@ function BuilderContent() {
 
     setSending(true);
     try {
+      // Translate any temporary rf_<ASIN> ids to real DB ids before sending
+      const resolveId = (id: string) => rfIdMap.current.get(id) ?? id;
+
+      // Block send if any Rainforest product hasn't been saved yet
+      const unsaved = cartItems.filter(
+        (i) => i.product.source === "rainforest" && !rfIdMap.current.has(i.product.id)
+      );
+      if (unsaved.length > 0) {
+        setSendError("Still saving new products — please try again in a moment.");
+        setSending(false);
+        return;
+      }
+
       const res = await fetch("/api/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           patientIdentifier: identifier,
-          productIds: cartItems.map((i) => i.product.id),
-          quantities: Object.fromEntries(cartItems.map((i) => [i.product.id, i.quantity])),
+          productIds: cartItems.map((i) => resolveId(i.product.id)),
+          quantities: Object.fromEntries(
+            cartItems.map((i) => [resolveId(i.product.id), i.quantity])
+          ),
           note: note.trim() || undefined,
         }),
       });

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
-import type { ProductCategory, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { ProductCategory } from "@prisma/client";
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 
 const VALID_CATEGORIES: ProductCategory[] = [
@@ -14,6 +15,17 @@ const VALID_CATEGORIES: ProductCategory[] = [
   "DENTAL",
   "OTHER",
 ];
+
+// Schema for saving a live Rainforest product (background save from builder)
+const RainforestSaveSchema = z.object({
+  source: z.literal("rainforest"),
+  id: z.string().max(50), // temporary rf_<ASIN> id
+  name: z.string().min(1).max(500).trim(),
+  brand: z.string().max(200).trim(),
+  imageUrl: z.string().url().max(2000).optional().nullable(),
+  price: z.number().min(0).max(100_000).optional().default(0),
+  amazonUrl: z.string().url().max(2000).optional().nullable(),
+});
 
 // Zod schema with strict length limits to prevent oversized payloads
 const CreateProductSchema = z.object({
@@ -114,6 +126,79 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+
+    // ── Rainforest background save ──────────────────────────────────────────
+    // When the builder adds a live Rainforest product for the first time it
+    // fires this endpoint to persist the product.  We check by ASIN first so
+    // we never create duplicates.
+    if (body?.source === "rainforest") {
+      const parsed = RainforestSaveSchema.safeParse(body);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: parsed.error.errors[0]?.message ?? "Invalid rainforest payload" },
+          { status: 400 }
+        );
+      }
+      const d = parsed.data;
+      const asin = d.id.replace(/^rf_/, "");
+
+      // Check if ASIN already in DB via ProductRetailerPrice
+      const existing = await db.productRetailerPrice.findFirst({
+        where: { retailer: "amazon", retailerProductId: asin },
+        include: { product: true },
+      });
+
+      if (existing) {
+        // Update price if stale (older than 24 h) and we have fresh data
+        const staleMs = 24 * 60 * 60 * 1000;
+        const isStale =
+          !existing.scannedAt ||
+          Date.now() - existing.scannedAt.getTime() > staleMs;
+        if (isStale && d.price > 0) {
+          await db.productRetailerPrice.update({
+            where: { id: existing.id },
+            data: {
+              price: new Prisma.Decimal(d.price),
+              scannedAt: new Date(),
+            },
+          });
+        }
+        return NextResponse.json({ product: existing.product });
+      }
+
+      // Create new product + retailer price record
+      const product = await db.product.create({
+        data: {
+          name: d.name,
+          brand: d.brand,
+          imageUrl: d.imageUrl ?? null,
+          price: d.price,
+          category: "OTHER",
+          fulfillmentType: "PHYSICAL",
+          hsaFsaEligible: false,
+          tags: [],
+          amazonUrl: d.amazonUrl ?? null,
+          ...(d.price > 0 && d.amazonUrl
+            ? {
+                retailerPrices: {
+                  create: {
+                    retailer: "amazon",
+                    price: new Prisma.Decimal(d.price),
+                    url: d.amazonUrl,
+                    retailerProductId: asin,
+                    available: true,
+                    manualEntry: false,
+                    scannedAt: new Date(),
+                  },
+                },
+              }
+            : {}),
+        },
+      });
+
+      return NextResponse.json({ product }, { status: 201 });
+    }
+
     const parsed = CreateProductSchema.safeParse(body);
 
     if (!parsed.success) {

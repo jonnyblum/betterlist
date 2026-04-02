@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { createPortal } from "react-dom";
 import {
   DndContext,
@@ -24,6 +25,7 @@ import { KitCard, NewKitCard, KitInProgressCard } from "@/components/kit-card";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@prisma/client";
 import type { KitWithItems } from "@/lib/types/kit";
+import type { CatalogProduct } from "@/lib/types/catalog";
 
 // ─── Category definitions ──────────────────────────────────────────────────────
 
@@ -342,7 +344,7 @@ interface ProductCatalogProps {
   products: Product[];
   selectedProductIds: string[];
   selectedQuantities: Record<string, number>;
-  onAddProduct: (product: Product) => void;
+  onAddProduct: (product: CatalogProduct) => void;
   pickedProductIds: string[];
   onTogglePick: (productId: string) => void;
   /** Which category values to show as pills. null/undefined = show all. */
@@ -409,6 +411,19 @@ export function ProductCatalog({
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
   const plusRef = useRef<HTMLButtonElement>(null);
+
+  // ─── Live search state ───────────────────────────────────────────────────────
+  // rfProducts: Rainforest-only results (DB results come from instantDbResults below)
+  const [rfProducts, setRfProducts] = useState<CatalogProduct[]>([]);
+  const [isRfLoading, setIsRfLoading] = useState(false);
+  const [searchPage, setSearchPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const searchAbortRef = useRef<AbortController | null>(null);
+
+  // ─── Virtual scroll state ────────────────────────────────────────────────────
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [cols, setCols] = useState(4);
 
   // ─── Kit expansion (view kit items in product grid) ─────────────────────────
   const [expandedKitId, setExpandedKitId] = useState<string | null>(null);
@@ -496,6 +511,133 @@ export function ProductCatalog({
     if (showMyPicks) setSortSnapshot([...pickedProductIds]);
   }
 
+  // ─── Instant DB results — zero-latency, from already-loaded products prop ────
+  //
+  // Shown immediately on the first keystroke (no API call, no debounce).
+  // Rainforest results are fetched in parallel and appended below.
+  const isLiveSearch = search.trim().length >= 2;
+
+  const instantDbResults = useMemo<CatalogProduct[]>(() => {
+    if (!isLiveSearch) return [];
+    const q = search.trim().toLowerCase();
+    return products
+      .filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.brand.toLowerCase().includes(q) ||
+          (p.description?.toLowerCase().includes(q) ?? false) ||
+          p.tags.some((t) => t.toLowerCase().includes(q))
+      )
+      .map((p) => ({ ...p, source: "db" as const }));
+  }, [isLiveSearch, search, products]);
+
+  // ─── Rainforest search: fires immediately, aborts on next keystroke ──────────
+  //
+  // No debounce — DB results already show instantly, so there's no visual
+  // "waiting" before the request fires.  Each query change aborts the previous
+  // in-flight request so only the latest query is ever in flight.
+  useEffect(() => {
+    if (!isLiveSearch) {
+      searchAbortRef.current?.abort();
+      setRfProducts([]);
+      setSearchPage(1);
+      setHasMore(false);
+      setIsRfLoading(false);
+      return;
+    }
+
+    searchAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    searchAbortRef.current = ctrl;
+
+    setIsRfLoading(true);
+    setRfProducts([]);
+    setSearchPage(1);
+    setHasMore(false);
+
+    fetch(
+      `/api/products/search?q=${encodeURIComponent(search.trim())}&page=1`,
+      { signal: ctrl.signal }
+    )
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        const rfOnly = (data.products as CatalogProduct[]).filter(
+          (p) => p.source === "rainforest"
+        );
+        setRfProducts(rfOnly);
+        setHasMore(data.hasMore ?? false);
+        setSearchPage(1);
+      })
+      .catch((e) => {
+        if ((e as Error).name !== "AbortError") console.error("[search]", e);
+      })
+      .finally(() => {
+        if (!ctrl.signal.aborted) setIsRfLoading(false);
+      });
+
+    return () => ctrl.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  // ─── Infinite scroll: load next page when sentinel comes into view ───────────
+  const loadNextPage = useCallback(async () => {
+    if (!hasMore || isLoadingMore || !isLiveSearch) return;
+    setIsLoadingMore(true);
+    const nextPage = searchPage + 1;
+    try {
+      const res = await fetch(
+        `/api/products/search?q=${encodeURIComponent(search.trim())}&page=${nextPage}`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      const rfOnly = (data.products as CatalogProduct[]).filter(
+        (p) => p.source === "rainforest"
+      );
+      setRfProducts((prev) => [...prev, ...rfOnly]);
+      setSearchPage(nextPage);
+      setHasMore(data.hasMore ?? false);
+    } catch (e) {
+      console.error("[search:loadMore]", e);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [hasMore, isLoadingMore, isLiveSearch, search, searchPage]);
+
+  // ─── Prefetch next page at 75% scroll depth ──────────────────────────────────
+  //
+  // Using a stable ref so the scroll listener never needs to be re-registered.
+  const loadNextPageRef = useRef(loadNextPage);
+  useEffect(() => { loadNextPageRef.current = loadNextPage; }, [loadNextPage]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    function onScroll() {
+      const { scrollTop, scrollHeight, clientHeight } = container!;
+      const scrollable = scrollHeight - clientHeight;
+      if (scrollable > 0 && scrollTop / scrollable >= 0.75) {
+        loadNextPageRef.current();
+      }
+    }
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
+  // Only register once — loadNextPageRef always has the latest version
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── Responsive column count (tracks scroll container width) ─────────────────
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      setCols(w < 640 ? 2 : w < 1024 ? 3 : 4);
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   // All categories that actually have at least one product
   const availableValues = useMemo(() => {
     const cats = new Set(products.map((p) => p.category as string));
@@ -557,6 +699,22 @@ export function ProductCatalog({
 
   const showFavoritesEmptyState =
     !expandedKit && showMyPicks && !search.trim() && activeCategory === "ALL" && pickedProductIds.length === 0;
+
+  // DB results shown instantly + Rainforest results appended when they arrive
+  const displayProducts: CatalogProduct[] = isLiveSearch
+    ? [...instantDbResults, ...rfProducts]
+    : filtered;
+
+  // ─── Virtual grid (main catalog, no kit-creation / expanded-kit modes) ────────
+  const isVirtualMode = !isKitCreating && !expandedKit;
+  const rowCount = isVirtualMode ? Math.ceil(displayProducts.length / cols) : 0;
+
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => 284, // card height (~272px) + 12px gap
+    overscan: 2,
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -739,7 +897,7 @@ export function ProductCatalog({
       )}
 
       {/* Product grid */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {showFavoritesEmptyState ? (
           <div className="px-4 sm:px-6 py-16 text-center">
             <svg className="w-8 h-8 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -747,7 +905,19 @@ export function ProductCatalog({
             </svg>
             <p className="text-sm text-muted">Search for products to add to your favorites</p>
           </div>
-        ) : filtered.length === 0 ? (
+
+        ) : isVirtualMode && displayProducts.length === 0 && isRfLoading ? (
+          /* No DB matches yet but Rainforest is loading — show skeleton immediately */
+          <div className="px-4 sm:px-6 pt-1 pb-6">
+            <p className="text-xs text-muted mb-3 invisible">loading</p>
+            <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="rounded-2xl bg-gray-100 animate-pulse" style={{ aspectRatio: "3/4" }} />
+              ))}
+            </div>
+          </div>
+
+        ) : isVirtualMode && displayProducts.length === 0 ? (
           <div className="px-4 sm:px-6 py-16 text-center">
             <p className="text-muted text-sm">No products found.</p>
             <button
@@ -757,7 +927,93 @@ export function ProductCatalog({
               Clear filters
             </button>
           </div>
+
+        ) : isVirtualMode ? (
+          /* ── Virtual scrolling grid (main catalog mode) ────────────────────── */
+          <div className="px-4 sm:px-6 pt-1 pb-6">
+            <p className="text-xs text-muted mb-3">
+              {displayProducts.length} product{displayProducts.length !== 1 ? "s" : ""}
+            </p>
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                position: "relative",
+              }}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const startIdx = virtualRow.index * cols;
+                const rowItems = displayProducts.slice(startIdx, startIdx + cols);
+                const isNormalMode = !showMyPicks;
+                return (
+                  <div
+                    key={virtualRow.key}
+                    data-index={virtualRow.index}
+                    ref={rowVirtualizer.measureElement}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      transform: `translateY(${virtualRow.start}px)`,
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                      gap: "12px",
+                      paddingBottom: "12px",
+                    }}
+                  >
+                    {rowItems.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onAdd={onAddProduct}
+                        isAdded={selectedProductIds.includes(product.id)}
+                        isInKit={false}
+                        quantity={selectedQuantities[product.id] ?? 0}
+                        isPicked={pickedProductIds.includes(product.id)}
+                        onTogglePick={isSignedIn ? onTogglePick : undefined}
+                        isFavoritesMode={isSignedIn && showMyPicks}
+                        onBookmarkMenu={
+                          isSignedIn && isNormalMode && onKitAddProduct
+                            ? (productId, rect) =>
+                                setBookmarkMenu({ productId, top: rect.bottom + 4, left: rect.left })
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Skeleton placeholders for pending Rainforest results */}
+            {isRfLoading && (
+              <div
+                className="grid gap-3 mt-0"
+                style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+              >
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl bg-gray-100 animate-pulse"
+                    style={{ aspectRatio: "3/4" }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Loading-more spinner */}
+            {isLoadingMore && (
+              <div className="flex justify-center py-4">
+                <svg className="w-5 h-5 animate-spin text-muted" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              </div>
+            )}
+          </div>
+
         ) : (
+          /* ── Kit-creation / expanded-kit view (non-virtual) ────────────────── */
           <div
             className={expandedKit
               ? "mx-3 sm:mx-5 mt-1 mb-5 px-4 py-3 rounded-2xl"
@@ -810,11 +1066,6 @@ export function ProductCatalog({
                   </button>
                 )}
               </div>
-            )}
-            {!isKitCreating && !expandedKit && (
-              <p className="text-xs text-muted mb-3">
-                {filtered.length} product{filtered.length !== 1 ? "s" : ""}
-              </p>
             )}
             {isKitCreating && (
               <p className="text-xs text-muted mb-3">

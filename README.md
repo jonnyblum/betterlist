@@ -1,6 +1,6 @@
 # BetterList
 
-Medical practices want to provide patients with trusted recommendations (devices, wellness apps, skincare, hygiene kits, supplements) outside of perscriptions and care plans, but don’t want the burden of inventory, fulfillment, or retail operations. So they scribble a brand name on a piece of paper, drop an Amazon link in the visit notes, or say it out loud and hope for the best. Most patients never buy it at all.
+Medical practices want to provide patients with trusted recommendations (devices, wellness apps, skincare, hygiene kits, supplements) outside of prescriptions and care plans, but don’t want the burden of inventory, fulfillment, or retail operations. So they scribble a brand name on a piece of paper, drop an Amazon link in the visit notes, or say it out loud and hope for the best. Most patients never buy it at all.
 
 The answer? Betterlist reccomendation links. Patients can finally see exactly what is recommended and buy at the best price. For the practice it's no extra work; just pick products, select patient, and boom - a shoppable link is instantly sent. Hipaa compliant. We handle everything from fulfillment, returns, and compliance, so the provider stays focused on care.
 
