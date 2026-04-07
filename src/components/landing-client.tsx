@@ -40,7 +40,7 @@ const CARD_PRODUCTS: Record<Specialty, CardProduct[]> = {
     { emoji: "💊", brand: "Nordic Naturals", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sky-50" },
     { emoji: "📱", brand: "MyFitnessPal", name: "Nutrition Tracker", price: "Free", bg: "bg-peach-50" },
   ],
-  "Primary Care": [
+  "Primary": [
     { emoji: "💊", brand: "Thorne", name: "Vitamin D3", price: "$18.99", bg: "bg-sage-50" },
     { emoji: "🌿", brand: "Garden of Life", name: "Probiotics", price: "$27.00", originalPrice: "$35.00", bg: "bg-peach-50" },
     { emoji: "⌚", brand: "Garmin", name: "Forerunner 265", price: "$349.99", bg: "bg-sky-50" },
@@ -131,12 +131,12 @@ export function LandingClient() {
               </div>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl font-bold text-foreground tracking-tight leading-[1.06] mb-6 text-balance">
+            <h1 className="text-[38px] sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight leading-[1.06] mb-6 text-balance">
               Recommendations<br className="hidden sm:block" /> in seconds.
             </h1>
 
-            <p className="text-lg text-muted leading-relaxed mb-10 max-w-md mx-auto lg:mx-0">
-              Send patients one link to exactly what you recommend, instantly. We make sure it's the best price for them. Better outcomes, no extra work.
+            <p className="text-[17px] sm:text-lg text-muted leading-relaxed mb-10 max-w-md mx-auto lg:mx-0">
+              <span className="sm:hidden">Send patients one link to exactly what you recommend, at the best price, instantly. Better outcomes, no extra work.</span><span className="hidden sm:inline">Send patients one link to exactly what you recommend, instantly. We make sure it's the best price for them. Better outcomes, no extra work.</span>
              
               {/* Send patients a shoppable link to what you recommend, instantly. We'll make sure it's the best price for them. Better outcomes, no extra work.
               Send patients a shoppable link to exactly what you recommend, instantly. We’ll make sure it’s the best price. Better outcomes, no extra work.

@@ -2,16 +2,16 @@
 
 import { useRef } from "react";
 
-export type Specialty = "All" | "Dermatology" | "Dental" | "Cardiology" | "Primary Care";
+export type Specialty = "All" | "Dermatology" | "Dental" | "Cardiology" | "Primary";
 
-export const SPECIALTY_TABS: Specialty[] = ["All", "Dermatology", "Dental", "Cardiology", "Primary Care"];
+export const SPECIALTY_TABS: Specialty[] = ["All", "Dermatology", "Dental", "Cardiology", "Primary"];
 
 const BRANDS: Record<Specialty, string[]> = {
   All: ["CeraVe", "La Roche-Posay", "Nordic Naturals", "OMRON", "Philips", "Oral-B", "Waterpik", "Vital Proteins", "Nature Made", "Neutrogena", "Calm", "Whoop", "Oura", "Fitbit", "Garmin", "Goli", "Thorne", "Sensodyne", "Colgate", "AliveCor", "Withings", "Aveeno", "Garden of Life", "Ritual"],
   Dermatology: ["CeraVe", "La Roche-Posay", "EltaMD", "Neutrogena", "Vital Proteins", "Calm", "Nordic Naturals", "Nature Made", "Oura", "Aveeno", "Vanicream", "SkinCeuticals", "Differin", "Bioderma", "The Ordinary", "Eucerin"],
   Dental: ["Oral-B", "Waterpik", "Philips", "Crest", "Listerine", "Calm", "Strava", "Fitbit", "Colgate", "Sensodyne", "Quip", "TheraBreath", "ACT"],
   Cardiology: ["OMRON", "Nordic Naturals", "Nature Made", "Innovo", "Whoop", "Garmin", "Oura", "Calm", "MyFitnessPal", "AliveCor", "Withings", "Polar", "Qunol"],
-  "Primary Care": ["Nature Made", "Nordic Naturals", "Vital Proteins", "OMRON", "Calm", "Headspace", "MyFitnessPal", "Noom", "Garmin", "Whoop", "Thorne", "Garden of Life", "Ritual", "NOW Foods", "Centrum"],
+  "Primary": ["Nature Made", "Nordic Naturals", "Vital Proteins", "OMRON", "Calm", "Headspace", "MyFitnessPal", "Noom", "Garmin", "Whoop", "Thorne", "Garden of Life", "Ritual", "NOW Foods", "Centrum"],
 };
 
 const MASK_H = "linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)";
@@ -52,13 +52,13 @@ export function BrandMarquee({ activeTab, displayedTab, contentOpacity, onTabCha
           <span className="text-[18px] sm:text-[15px] font-semibold text-foreground sm:text-muted sm:font-medium">We find your favorite brands</span>
 
           {/* Specialty tabs */}
-          <div className="flex items-center gap-1 flex-wrap">
+          <div className="flex items-center gap-0 sm:gap-1 flex-wrap">
             {SPECIALTY_TABS.map((tab) => (
               <button
                 key={tab}
                 onClick={() => onTabChange(tab)}
                 className={[
-                  "text-[12px] px-2.5 py-1 rounded-full transition-all",
+                  "text-[12px] px-2 py-1 sm:px-2.5 rounded-full transition-all",
                   activeTab === tab
                     ? "bg-[#EBEBEB] text-foreground font-medium"
                     : "text-muted hover:text-foreground",
