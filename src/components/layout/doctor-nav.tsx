@@ -10,9 +10,11 @@ import { SignInModal } from "@/components/sign-in-modal";
 interface DoctorNavProps {
   session: Session | null;
   practiceSlug?: string;
+  /** The signed-in clinician's own slug, used to link to their storefront */
+  clinicianSlug?: string;
 }
 
-export function DoctorNav({ session, practiceSlug }: DoctorNavProps) {
+export function DoctorNav({ session, practiceSlug, clinicianSlug }: DoctorNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,6 +33,8 @@ export function DoctorNav({ session, practiceSlug }: DoctorNavProps) {
   }, []);
 
   const isSignedIn = !!session?.user;
+
+  const storefrontHref = clinicianSlug ? `/${clinicianSlug}` : null;
 
   const navItems = [
     {
@@ -51,6 +55,19 @@ export function DoctorNav({ session, practiceSlug }: DoctorNavProps) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
+      guestAllowed: false,
+    },
+    {
+      href: storefrontHref ?? "/builder",
+      label: "Storefront",
+      icon: (
+        /* Store / shop icon */
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      // Guests clicking Storefront → open sign-in modal (storefrontHref is null for guests)
       guestAllowed: false,
     },
   ];
@@ -79,11 +96,14 @@ export function DoctorNav({ session, practiceSlug }: DoctorNavProps) {
         {/* Center: Nav items */}
         <div className="flex items-center gap-0.5">
           {navItems.map((item) => {
-            const active = pathname === item.href;
+            const active =
+              item.label === "Storefront"
+                ? !!clinicianSlug && pathname === `/${clinicianSlug}`
+                : pathname === item.href;
             const disabled = !isSignedIn && !item.guestAllowed;
             return (
               <button
-                key={item.href}
+                key={item.label}
                 onClick={() => {
                   if (disabled) {
                     setSignInModalOpen(true);

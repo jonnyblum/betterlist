@@ -134,6 +134,7 @@ model DoctorProfile {
   bio               String?
   avatarUrl         String?
   customCategories  String[]  @default([])
+  storefrontEnabled Boolean   @default(true)
 
   user      User      @relation(fields: [userId], references: [id])
   practice  Practice? @relation(fields: [practiceId], references: [id])

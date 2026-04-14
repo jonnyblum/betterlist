@@ -1011,7 +1011,7 @@ async function main() {
   ] } } });
   await prisma.kit.create({ data: { name: "Post-Procedure Kit", specialty: "Dermatology", items: { create: [
     { productId: await findProduct("CeraVe Moisturizing Cream 19oz"), order: 0 },
-    { productId: await findProduct("Neutrogena Rapid Wrinkle Repair Retinol Serum 1oz"), order: 1 },
+    { productId: await findProduct("Neutrogena Rapid Wrinkle Repair Retinol Cream 1.7oz"), order: 1 },
     { productId: await findProduct("EltaMD UV Clear Broad-Spectrum SPF 46 1.7oz"), order: 2 },
   ] } } });
 
@@ -1019,7 +1019,7 @@ async function main() {
   await prisma.kit.create({ data: { name: "New Patient Kit", specialty: "Dentistry", items: { create: [
     { productId: await findProduct("Oral-B Pro 1000 Electric Toothbrush"), order: 0 },
     { productId: await findProduct("Waterpik Aquarius Water Flosser WP-660"), order: 1 },
-    { productId: await findProduct("Crest Pro-Health Gum Detoxify Toothpaste 4.8oz (2-pack)"), order: 2 },
+    { productId: await findProduct("Crest Pro-Health Gum Detoxify Toothpaste 4.8oz"), order: 2 },
     { productId: await findProduct("Listerine Total Care Anticavity Mouthwash 1L"), order: 3 },
   ] } } });
   await prisma.kit.create({ data: { name: "Periodontal Care Kit", specialty: "Dentistry", items: { create: [

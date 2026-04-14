@@ -13,6 +13,7 @@ const PUBLIC_PATHS = [
   "/api/products",
   "/api/recommendations/guest",
   "/api/guest-signup",
+  "/api/storefront",
   "/builder",
   "/r/",
   "/p/",

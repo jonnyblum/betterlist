@@ -16,6 +16,10 @@ interface ProductCardProps {
   onBookmarkMenu?: (productId: string, rect: DOMRect) => void;
   /** Show a filled bookmark (instead of black checkmark) to indicate product is in the kit being edited */
   isInKit?: boolean;
+  /** Storefront mode: hide + button and bookmarks, show "Get this →" link instead */
+  isStorefront?: boolean;
+  /** Called when patient taps "Get this →" on a storefront card */
+  onGetThis?: (product: CatalogProduct) => void;
 }
 
 export function ProductCard({
@@ -28,6 +32,8 @@ export function ProductCard({
   isFavoritesMode = false,
   onBookmarkMenu,
   isInKit = false,
+  isStorefront = false,
+  onGetThis,
 }: ProductCardProps) {
   function handleBookmarkClick(e: React.MouseEvent) {
     e.stopPropagation();
@@ -42,13 +48,14 @@ export function ProductCard({
   return (
     <div
       className={[
-        "group relative bg-white rounded-2xl border transition-all duration-200 cursor-pointer select-none",
+        "group relative bg-white rounded-2xl border transition-all duration-200 select-none",
+        isStorefront ? "cursor-default" : "cursor-pointer",
         "hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
         isAdded || isInKit
           ? "border-foreground/20 ring-2 ring-foreground/10"
           : "border-[rgba(0,0,0,0.06)] hover:border-[rgba(0,0,0,0.1)]",
       ].join(" ")}
-      onClick={() => onAdd(product)}
+      onClick={isStorefront ? undefined : () => onAdd(product)}
     >
       {/* Kit membership indicator — bookmark replaces checkmark during kit edit */}
       {isInKit && (
@@ -79,8 +86,8 @@ export function ProductCard({
         </div>
       )} */}
 
-      {/* Bookmark badge — in favorites mode (toggle pick) or normal mode (open kit dropdown) */}
-      {(isFavoritesMode || !!onBookmarkMenu) && (
+      {/* Bookmark badge — in favorites mode (toggle pick) or normal mode (open kit dropdown); hidden in storefront */}
+      {!isStorefront && (isFavoritesMode || !!onBookmarkMenu) && (
         <button
           onClick={handleBookmarkClick}
           className={[
@@ -128,31 +135,45 @@ export function ProductCard({
       {/* Product info */}
       <div className="px-3 pt-2 pb-3">
         <p className="text-[11px] text-muted font-medium leading-none mb-1">{product.brand}</p>
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="font-semibold text-[12px] text-foreground leading-tight line-clamp-2 flex-1">
-            {product.name}
-          </h3>
-          <div
-            className={[
-              "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all",
-              isInKit
-                ? "bg-sky-400 text-white"
-                : isAdded
-                ? "bg-foreground text-white"
-                : "bg-gray-100 text-muted group-hover:bg-[#888] group-hover:text-white",
-            ].join(" ")}
-          >
-            {isAdded || isInKit ? (
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-            )}
+        {isStorefront ? (
+          <div className="flex items-end justify-between gap-2">
+            <h3 className="font-semibold text-[12px] text-foreground leading-tight line-clamp-2 flex-1">
+              {product.name}
+            </h3>
+            <button
+              onClick={(e) => { e.stopPropagation(); onGetThis?.(product); }}
+              className="flex-shrink-0 text-[11px] font-semibold text-sky-600 hover:text-sky-800 whitespace-nowrap transition-colors"
+            >
+              Get this →
+            </button>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-semibold text-[12px] text-foreground leading-tight line-clamp-2 flex-1">
+              {product.name}
+            </h3>
+            <div
+              className={[
+                "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all",
+                isInKit
+                  ? "bg-sky-400 text-white"
+                  : isAdded
+                  ? "bg-foreground text-white"
+                  : "bg-gray-100 text-muted group-hover:bg-[#888] group-hover:text-white",
+              ].join(" ")}
+            >
+              {isAdded || isInKit ? (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

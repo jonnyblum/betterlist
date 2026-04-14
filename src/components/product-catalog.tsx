@@ -373,6 +373,10 @@ interface ProductCatalogProps {
   isSignedIn?: boolean;
   /** Called when a guest clicks the Favorites pill (e.g. redirect to sign-in) */
   onGuestFavoritesClick?: () => void;
+  /** Storefront mode: hides favorites pill, bookmarks, kits, + buttons; shows "Get this →" per card */
+  isStorefront?: boolean;
+  /** Called when a patient taps "Get this →" on a storefront card */
+  onGetThis?: (product: import("@/lib/types/catalog").CatalogProduct) => void;
 }
 
 export function ProductCatalog({
@@ -402,6 +406,8 @@ export function ProductCatalog({
   onKitSave,
   isSignedIn = true,
   onGuestFavoritesClick,
+  isStorefront = false,
+  onGetThis,
 }: ProductCatalogProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
@@ -537,7 +543,7 @@ export function ProductCatalog({
   // "waiting" before the request fires.  Each query change aborts the previous
   // in-flight request so only the latest query is ever in flight.
   useEffect(() => {
-    if (!isLiveSearch) {
+    if (!isLiveSearch || isStorefront) {
       searchAbortRef.current?.abort();
       setRfProducts([]);
       setSearchPage(1);
@@ -747,33 +753,37 @@ export function ProductCatalog({
         <div className="flex items-center gap-1.5">
           {/* Scrollable pills — flex-1 so the + More button stays pinned right */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 flex-1 min-w-0">
-            {/* Favorites pill — always visible; guests are redirected to sign-in */}
-            <button
-                onClick={isSignedIn ? handleToggleFavoritesPill : onGuestFavoritesClick}
-                className={[
-                  "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  !isSignedIn
-                    ? "bg-white border border-[rgba(0,0,0,0.08)] text-[#ccc] hover:text-[#aaa] hover:border-[rgba(0,0,0,0.14)]"
-                    : showMyPicks
-                    ? "bg-sky-500 text-white"
-                    : pickedProductIds.length === 0
-                    ? "bg-white border border-[rgba(0,0,0,0.08)] text-[#ccc] cursor-pointer"
-                    : "bg-white border border-[rgba(0,0,0,0.08)] text-muted hover:text-foreground hover:border-foreground/20",
-                ].join(" ")}
-              >
-                <svg className="w-3.5 h-3.5" fill={showMyPicks ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 20V4z" />
-                </svg>
-                Favorites
-                {isSignedIn && pickedProductIds.length > 0 && (
-                  <span className={`text-xs ${showMyPicks ? "text-white/80" : "text-muted"}`}>
-                    {pickedProductIds.length}
-                  </span>
-                )}
-              </button>
+            {/* Favorites pill — hidden in storefront mode */}
+            {!isStorefront && (
+              <>
+                <button
+                    onClick={isSignedIn ? handleToggleFavoritesPill : onGuestFavoritesClick}
+                    className={[
+                      "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                      !isSignedIn
+                        ? "bg-white border border-[rgba(0,0,0,0.08)] text-[#ccc] hover:text-[#aaa] hover:border-[rgba(0,0,0,0.14)]"
+                        : showMyPicks
+                        ? "bg-sky-500 text-white"
+                        : pickedProductIds.length === 0
+                        ? "bg-white border border-[rgba(0,0,0,0.08)] text-[#ccc] cursor-pointer"
+                        : "bg-white border border-[rgba(0,0,0,0.08)] text-muted hover:text-foreground hover:border-foreground/20",
+                    ].join(" ")}
+                  >
+                    <svg className="w-3.5 h-3.5" fill={showMyPicks ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 20V4z" />
+                    </svg>
+                    Favorites
+                    {isSignedIn && pickedProductIds.length > 0 && (
+                      <span className={`text-xs ${showMyPicks ? "text-white/80" : "text-muted"}`}>
+                        {pickedProductIds.length}
+                      </span>
+                    )}
+                  </button>
 
-            {/* Divider between Favorites pill and category pills */}
-            <div className="flex-shrink-0 w-px h-4 bg-black/10 mx-0.5" />
+                {/* Divider between Favorites pill and category pills */}
+                <div className="flex-shrink-0 w-px h-4 bg-black/10 mx-0.5" />
+              </>
+            )}
 
             {/* "All" pill */}
             <button
@@ -847,8 +857,8 @@ export function ProductCatalog({
         />
       )}
 
-      {/* Kits row — shown in favorites mode and during kit creation */}
-      {(showMyPicks || isKitCreating) && onKitCreate && (
+      {/* Kits row — shown in favorites mode and during kit creation; hidden in storefront */}
+      {!isStorefront && (showMyPicks || isKitCreating) && onKitCreate && (
         <div className="px-4 sm:px-6 pb-2">
           <p className="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Kits</p>
           {/* py-2 px-1 gives shadow room so cards don't get clipped by overflow */}
@@ -970,14 +980,16 @@ export function ProductCatalog({
                         isInKit={false}
                         quantity={selectedQuantities[product.id] ?? 0}
                         isPicked={pickedProductIds.includes(product.id)}
-                        onTogglePick={isSignedIn ? onTogglePick : undefined}
-                        isFavoritesMode={isSignedIn && showMyPicks}
+                        onTogglePick={isSignedIn && !isStorefront ? onTogglePick : undefined}
+                        isFavoritesMode={isSignedIn && showMyPicks && !isStorefront}
                         onBookmarkMenu={
-                          isSignedIn && isNormalMode && onKitAddProduct
+                          !isStorefront && isSignedIn && isNormalMode && onKitAddProduct
                             ? (productId, rect) =>
                                 setBookmarkMenu({ productId, top: rect.bottom + 4, left: rect.left })
                             : undefined
                         }
+                        isStorefront={isStorefront}
+                        onGetThis={isStorefront ? onGetThis : undefined}
                       />
                     ))}
                   </div>
