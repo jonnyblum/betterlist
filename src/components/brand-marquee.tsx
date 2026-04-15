@@ -49,7 +49,7 @@ export function BrandMarquee({ activeTab, displayedTab, contentOpacity, onTabCha
 
         {/* Header row */}
         <div className="flex items-center justify-between gap-4 mb-8 flex-wrap gap-y-3">
-          <span className="text-[18px] sm:text-[15px] font-semibold text-foreground sm:text-muted sm:font-medium">We find your favorite brands</span>
+          <span className="text-[18px] sm:text-[15px] font-semibold text-foreground sm:text-muted sm:font-medium">We have your favorite brands</span>
 
           {/* Specialty tabs */}
           <div className="flex items-center gap-0 sm:gap-1 flex-wrap">

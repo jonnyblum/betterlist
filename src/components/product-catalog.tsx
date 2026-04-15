@@ -373,10 +373,14 @@ interface ProductCatalogProps {
   isSignedIn?: boolean;
   /** Called when a guest clicks the Favorites pill (e.g. redirect to sign-in) */
   onGuestFavoritesClick?: () => void;
-  /** Storefront mode: hides favorites pill, bookmarks, kits, + buttons; shows "Get this →" per card */
+  /** Storefront mode: hides favorites pill, bookmarks, kits, + buttons; shows "Add to bag" per card */
   isStorefront?: boolean;
-  /** Called when a patient taps "Get this →" on a storefront card */
+  /** Called when a patient taps "Get this →" on a storefront card (kept for single-product flow) */
   onGetThis?: (product: import("@/lib/types/catalog").CatalogProduct) => void;
+  /** Called when a patient taps "Add to bag" on a storefront card */
+  onAddToBag?: (product: import("@/lib/types/catalog").CatalogProduct) => void;
+  /** Product IDs currently in the bag (used to show filled state) */
+  bagProductIds?: string[];
 }
 
 export function ProductCatalog({
@@ -408,6 +412,8 @@ export function ProductCatalog({
   onGuestFavoritesClick,
   isStorefront = false,
   onGetThis,
+  onAddToBag,
+  bagProductIds,
 }: ProductCatalogProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
@@ -638,7 +644,10 @@ export function ProductCatalog({
     if (!container) return;
     const observer = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      setCols(w < 640 ? 2 : w < 1024 ? 3 : 4);
+      setCols(isStorefront
+        ? (w < 640 ? 2 : w < 900 ? 3 : w < 1200 ? 4 : 5)
+        : (w < 640 ? 2 : w < 1024 ? 3 : 4)
+      );
     });
     observer.observe(container);
     return () => observer.disconnect();
@@ -722,10 +731,14 @@ export function ProductCatalog({
     overscan: 2,
   });
 
+  // Centering wrapper class used in storefront to align content with the header's max-w-7xl
+  const storefrontInner = isStorefront ? "max-w-7xl mx-auto" : "";
+
   return (
     <div className="flex flex-col h-full">
       {/* Search bar */}
       <div className="px-4 sm:px-6 pt-4 pb-3">
+        <div className={storefrontInner}>
         <Input
           type="text"
           placeholder={showMyPicks ? "Search to add favorites..." : "Search products, brands, or tags..."}
@@ -746,10 +759,12 @@ export function ProductCatalog({
             ) : undefined
           }
         />
+        </div>
       </div>
 
       {/* Filter row */}
       <div className="px-4 sm:px-6 pb-3">
+        <div className={storefrontInner}>
         <div className="flex items-center gap-1.5">
           {/* Scrollable pills — flex-1 so the + More button stays pinned right */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 flex-1 min-w-0">
@@ -838,6 +853,7 @@ export function ProductCatalog({
             )}
           </div>
         </div>
+        </div>
       </div>
 
       {/* Category popover — portal so it renders above all overflow containers */}
@@ -919,11 +935,13 @@ export function ProductCatalog({
         ) : isVirtualMode && displayProducts.length === 0 && isRfLoading ? (
           /* No DB matches yet but Rainforest is loading — show skeleton immediately */
           <div className="px-4 sm:px-6 pt-1 pb-6">
+            <div className={storefrontInner}>
             <p className="text-xs text-muted mb-3 invisible">loading</p>
             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="rounded-2xl bg-gray-100 animate-pulse" style={{ aspectRatio: "3/4" }} />
               ))}
+            </div>
             </div>
           </div>
 
@@ -941,6 +959,7 @@ export function ProductCatalog({
         ) : isVirtualMode ? (
           /* ── Virtual scrolling grid (main catalog mode) ────────────────────── */
           <div className="px-4 sm:px-6 pt-1 pb-6">
+            <div className={storefrontInner}>
             <p className="text-xs text-muted mb-3">
               {displayProducts.length} product{displayProducts.length !== 1 ? "s" : ""}
             </p>
@@ -990,6 +1009,8 @@ export function ProductCatalog({
                         }
                         isStorefront={isStorefront}
                         onGetThis={isStorefront ? onGetThis : undefined}
+                        onAddToBag={isStorefront ? onAddToBag : undefined}
+                        isInBag={isStorefront && bagProductIds ? bagProductIds.includes(product.id) : false}
                       />
                     ))}
                   </div>
@@ -1022,6 +1043,7 @@ export function ProductCatalog({
                 </svg>
               </div>
             )}
+            </div>
           </div>
 
         ) : (

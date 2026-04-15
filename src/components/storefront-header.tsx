@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 // ─── Avatar color palette (matches recommendation-receipt.tsx) ─────────────────
 
@@ -26,6 +27,12 @@ interface StorefrontHeaderProps {
   specialty?: string | null;
   practiceName?: string | null;
   storefrontUrl: string;
+  /** Hide the share button (e.g. on demo pages for signed-out users) */
+  hideShare?: boolean;
+  /** If set, renders the demo specialty switcher + notice inside the header */
+  demoSpecialties?: readonly string[];
+  /** The currently active specialty on the demo page */
+  demoActiveSpecialty?: string;
 }
 
 export function StorefrontHeader({
@@ -33,6 +40,9 @@ export function StorefrontHeader({
   specialty,
   practiceName,
   storefrontUrl,
+  hideShare = false,
+  demoSpecialties,
+  demoActiveSpecialty,
 }: StorefrontHeaderProps) {
   const [copied, setCopied] = useState(false);
   const color = getDoctorColor(displayName);
@@ -80,7 +90,7 @@ export function StorefrontHeader({
               {displayName}
             </h1>
 
-            {(specialty || practiceName) && (
+            {(specialty || practiceName) && !demoSpecialties && (
               <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 {specialty && (
                   <span
@@ -99,11 +109,44 @@ export function StorefrontHeader({
             <p className="text-sm text-muted mt-1.5">
               Products I recommend to my patients
             </p>
+
+            {demoSpecialties && demoSpecialties.length > 0 && (
+              <div className="mt-3">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] text-[#999] font-medium">Previewing as:</span>
+                  {demoSpecialties.map((s) => {
+                    const isActive = s === demoActiveSpecialty;
+                    return (
+                      <Link
+                        key={s}
+                        href={`/store?specialty=${encodeURIComponent(s)}`}
+                        className={[
+                          "px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all",
+                          isActive ? "" : "bg-black/[0.06] text-muted hover:text-foreground hover:bg-black/[0.1]",
+                        ].join(" ")}
+                        style={isActive ? { background: color.pillBg, color: color.text } : undefined}
+                      >
+                        {s}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right: share button */}
-        <button
+        {/* Right: demo notice + share button */}
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          {demoSpecialties && (
+            <p className="text-[11px] text-[#aaa] text-right hidden sm:block">
+              This is a sample storefront.{" "}
+              <Link href="/builder" className="text-foreground font-medium hover:underline underline-offset-2">
+                Create yours free →
+              </Link>
+            </p>
+          )}
+          {!hideShare && <button
           onClick={handleShare}
           title="Copy storefront link"
           className={[
@@ -129,7 +172,8 @@ export function StorefrontHeader({
               <span className="hidden sm:block">Share</span>
             </>
           )}
-        </button>
+        </button>}
+        </div>
       </div>
     </div>
   );

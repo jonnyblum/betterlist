@@ -20,9 +20,11 @@ type Step = "auth" | "checking" | "role" | "provider-details";
 interface SignInModalProps {
   onClose: () => void;
   onSuccess: () => void;
+  /** If set to "PATIENT", auto-select patient role for new users — skips role picker */
+  defaultRole?: "PATIENT";
 }
 
-export function SignInModal({ onClose, onSuccess }: SignInModalProps) {
+export function SignInModal({ onClose, onSuccess, defaultRole }: SignInModalProps) {
   const router = useRouter();
   const { data: session, update: updateSession } = useSession();
   const [step, setStep] = useState<Step>("auth");
@@ -46,6 +48,9 @@ export function SignInModal({ onClose, onSuccess }: SignInModalProps) {
     if (session.user.onboarded) {
       // Returning user — close immediately
       onSuccess();
+    } else if (defaultRole === "PATIENT") {
+      // New user on storefront — auto-onboard as patient, no role picker
+      handlePatientChoice();
     } else {
       // New user — show role question
       setStep("role");

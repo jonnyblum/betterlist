@@ -16,10 +16,14 @@ interface ProductCardProps {
   onBookmarkMenu?: (productId: string, rect: DOMRect) => void;
   /** Show a filled bookmark (instead of black checkmark) to indicate product is in the kit being edited */
   isInKit?: boolean;
-  /** Storefront mode: hide + button and bookmarks, show "Get this →" link instead */
+  /** Storefront mode: hide + button and bookmarks, show "Add to bag" per card */
   isStorefront?: boolean;
-  /** Called when patient taps "Get this →" on a storefront card */
+  /** Called when patient taps "Get this →" on a storefront card (kept for internal use) */
   onGetThis?: (product: CatalogProduct) => void;
+  /** Called when patient taps "Add to bag" on a storefront card */
+  onAddToBag?: (product: CatalogProduct) => void;
+  /** Whether this product is already in the bag */
+  isInBag?: boolean;
 }
 
 export function ProductCard({
@@ -34,6 +38,8 @@ export function ProductCard({
   isInKit = false,
   isStorefront = false,
   onGetThis,
+  onAddToBag,
+  isInBag = false,
 }: ProductCardProps) {
   function handleBookmarkClick(e: React.MouseEvent) {
     e.stopPropagation();
@@ -136,15 +142,27 @@ export function ProductCard({
       <div className="px-3 pt-2 pb-3">
         <p className="text-[11px] text-muted font-medium leading-none mb-1">{product.brand}</p>
         {isStorefront ? (
-          <div className="flex items-end justify-between gap-2">
-            <h3 className="font-semibold text-[12px] text-foreground leading-tight line-clamp-2 flex-1">
+          <div className="flex flex-col gap-1.5">
+            <h3 className="font-semibold text-[12px] text-foreground leading-tight line-clamp-2">
               {product.name}
             </h3>
             <button
-              onClick={(e) => { e.stopPropagation(); onGetThis?.(product); }}
-              className="flex-shrink-0 text-[11px] font-semibold text-sky-600 hover:text-sky-800 whitespace-nowrap transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onAddToBag) {
+                  onAddToBag(product);
+                } else {
+                  onGetThis?.(product);
+                }
+              }}
+              className={[
+                "w-full text-[11px] font-semibold py-1.5 rounded-lg transition-all",
+                isInBag
+                  ? "bg-foreground text-white"
+                  : "bg-black/[0.05] text-foreground hover:bg-black/[0.1]",
+              ].join(" ")}
             >
-              Get this →
+              {isInBag ? "✓ In bag" : "Add to bag"}
             </button>
           </div>
         ) : (

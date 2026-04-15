@@ -7,8 +7,9 @@ import { getShareUrl } from "@/lib/utils";
 /**
  * POST /api/storefront/[slug]/get
  * Auth required (patient must be signed in).
- * Creates a single-product recommendation from this provider to the patient,
- * then returns the receipt URL so the patient can view and purchase.
+ * Accepts { productIds: string[] } (bag checkout).
+ * Validates all products are in the provider's picks, creates a multi-item
+ * recommendation, and returns the receipt URL.
  */
 export async function POST(
   req: NextRequest,
@@ -21,10 +22,19 @@ export async function POST(
 
   const { slug } = await params;
   const body = await req.json();
-  const { productId } = body as { productId?: string };
 
-  if (!productId || typeof productId !== "string") {
-    return NextResponse.json({ error: "productId is required" }, { status: 400 });
+  // Support both { productIds: string[] } (bag) and legacy { productId: string }
+  let productIds: string[];
+  if (Array.isArray(body.productIds) && body.productIds.length > 0) {
+    productIds = body.productIds;
+  } else if (typeof body.productId === "string" && body.productId) {
+    productIds = [body.productId];
+  } else {
+    return NextResponse.json({ error: "productIds is required" }, { status: 400 });
+  }
+
+  if (productIds.length > 50) {
+    return NextResponse.json({ error: "Too many products" }, { status: 400 });
   }
 
   // Find the provider
@@ -37,19 +47,25 @@ export async function POST(
     return NextResponse.json({ error: "Storefront not available" }, { status: 404 });
   }
 
-  // Validate product exists and is in provider's picks
-  const pick = await db.clinicianPickedProduct.findUnique({
-    where: { clinicianId_productId: { clinicianId: doctorProfile.id, productId } },
+  // Validate all products exist in provider's picks
+  const picks = await db.clinicianPickedProduct.findMany({
+    where: {
+      clinicianId: doctorProfile.id,
+      productId: { in: productIds },
+    },
+    select: { productId: true },
   });
 
-  if (!pick) {
-    return NextResponse.json({ error: "Product not found in storefront" }, { status: 404 });
+  const validProductIds = new Set(picks.map((p) => p.productId));
+  const invalidIds = productIds.filter((id) => !validProductIds.has(id));
+  if (invalidIds.length > 0) {
+    return NextResponse.json({ error: "One or more products not found in storefront" }, { status: 404 });
   }
 
   // Determine patient identifier (phone or email)
   const patientIdentifier = session.user.phone ?? session.user.email ?? session.user.id;
 
-  // Create recommendation
+  // Create recommendation with all items
   const token = nanoid(12);
   const recommendation = await db.recommendation.create({
     data: {
@@ -58,7 +74,7 @@ export async function POST(
       doctorProfileId: doctorProfile.id,
       patientIdentifier,
       items: {
-        create: [{ productId, quantity: 1 }],
+        create: productIds.map((productId) => ({ productId, quantity: 1 })),
       },
     },
   });

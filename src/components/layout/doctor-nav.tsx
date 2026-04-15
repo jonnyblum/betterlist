@@ -37,9 +37,24 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug }: DoctorNavPro
   const storefrontHref = clinicianSlug ? `/${clinicianSlug}` : null;
 
   const navItems = [
+        {
+      href: storefrontHref ?? "/store",
+      label: "Storefront",
+      icon: (
+        /* Store / shop icon */
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path d="M3 10h18" strokeLinecap="round"/>
+    <path d="M4 10l1-4h14l1 4" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5 10v9a2 2 0 002 2h10a2 2 0 002-2v-9" strokeLinecap="round"/>
+    <path d="M9 21v-6h6v6" strokeLinecap="round"/>
+  </svg>
+      ),
+      // Guests go to /store demo; signed-in clinicians go to their own storefront
+      guestAllowed: true,
+    },
     {
       href: "/builder",
-      label: "Builder",
+      label: "Recommend",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -51,25 +66,13 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug }: DoctorNavPro
       href: "/activity",
       label: "History",
       icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
       ),
       guestAllowed: false,
-    },
-    {
-      href: storefrontHref ?? "/builder",
-      label: "Storefront",
-      icon: (
-        /* Store / shop icon */
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ),
-      // Guests clicking Storefront → open sign-in modal (storefrontHref is null for guests)
-      guestAllowed: false,
-    },
+    },    
   ];
 
   const initials = session?.user?.name
@@ -98,7 +101,7 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug }: DoctorNavPro
           {navItems.map((item) => {
             const active =
               item.label === "Storefront"
-                ? !!clinicianSlug && pathname === `/${clinicianSlug}`
+                ? (clinicianSlug ? pathname === `/${clinicianSlug}` : pathname === "/store")
                 : pathname === item.href;
             const disabled = !isSignedIn && !item.guestAllowed;
             return (
@@ -112,9 +115,9 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug }: DoctorNavPro
                   }
                 }}
                 className={[
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all",
+                  "relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all h-14",
                   active
-                    ? "text-[#111] font-semibold"
+                    ? "text-[#111] font-semibold after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[1.5px] after:bg-[#555] after:rounded-t-full"
                     : "text-[#999] font-medium hover:text-[#555]",
                 ].join(" ")}
               >

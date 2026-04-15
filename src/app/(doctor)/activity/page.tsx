@@ -379,7 +379,7 @@ export default function ActivityPage() {
   const tabs: { key: Tab; label: string }[] = [
     { key: "recommendations", label: "Recommendations" },
     { key: "orders", label: "Orders" },
-    { key: "favorites", label: "Favorites" },
+    { key: "favorites", label: "Product Favorites" },
   ];
 
   return (

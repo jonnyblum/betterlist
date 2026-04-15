@@ -31,9 +31,18 @@ export default async function DoctorLayout({
   const headersList = await headers();
   const practiceSlug = headersList.get("x-practice-slug") ?? undefined;
 
+  let clinicianSlug: string | undefined;
+  if (session.user.id) {
+    const profile = await db.doctorProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { slug: true },
+    });
+    clinicianSlug = profile?.slug ?? undefined;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <DoctorNav session={session} practiceSlug={practiceSlug} />
+      <DoctorNav session={session} practiceSlug={practiceSlug} clinicianSlug={clinicianSlug} />
       <main>{children}</main>
     </div>
   );
