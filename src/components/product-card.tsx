@@ -143,7 +143,7 @@ export function ProductCard({
         <p className="text-[11px] text-muted font-medium leading-none mb-1">{product.brand}</p>
         {isStorefront ? (
           <div className="flex flex-col gap-1.5">
-            <h3 className="font-semibold text-[12px] text-foreground leading-tight line-clamp-2">
+            <h3 className="font-semibold text-[12px] text-foreground leading-tight line-clamp-2 min-h-[2.5em]">
               {product.name}
             </h3>
             <button

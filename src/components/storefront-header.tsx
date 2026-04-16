@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { SignInModal } from "@/components/sign-in-modal";
 
 // ─── Avatar color palette (matches recommendation-receipt.tsx) ─────────────────
 
@@ -45,6 +46,7 @@ export function StorefrontHeader({
   demoActiveSpecialty,
 }: StorefrontHeaderProps) {
   const [copied, setCopied] = useState(false);
+  const [signInModalOpen, setSignInModalOpen] = useState(false);
   const color = getDoctorColor(displayName);
 
   const initials = displayName
@@ -141,10 +143,19 @@ export function StorefrontHeader({
           {demoSpecialties && (
             <p className="text-[11px] text-[#aaa] text-right hidden sm:block">
               This is a sample storefront.{" "}
-              <Link href="/builder" className="text-foreground font-medium hover:underline underline-offset-2">
+              <button
+                onClick={() => setSignInModalOpen(true)}
+                className="text-foreground font-medium hover:underline underline-offset-2"
+              >
                 Create yours free →
-              </Link>
+              </button>
             </p>
+          )}
+          {signInModalOpen && (
+            <SignInModal
+              onClose={() => setSignInModalOpen(false)}
+              onSuccess={() => setSignInModalOpen(false)}
+            />
           )}
           {!hideShare && <button
           onClick={handleShare}

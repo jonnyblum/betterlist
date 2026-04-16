@@ -64,9 +64,16 @@ export function getInitials(name: string): string {
     .join("");
 }
 
+export function getBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.NODE_ENV === "production") {
+    console.error("NEXT_PUBLIC_APP_URL is not set in production — falling back to localhost");
+  }
+  return "http://localhost:3000";
+}
+
 export function getShareUrl(token: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${base}/r/${token}`;
+  return `${getBaseUrl()}/r/${token}`;
 }
 
 // Simple className merge utility

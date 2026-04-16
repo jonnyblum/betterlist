@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { StorefrontHeader } from "@/components/storefront-header";
+import { getBaseUrl } from "@/lib/utils";
 import { StorefrontCatalog } from "@/components/storefront-catalog";
 import { DoctorNav } from "@/components/layout/doctor-nav";
 
@@ -73,7 +74,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
   }
 
   const storefrontUrl =
-    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/${slug}`;
+    `${getBaseUrl()}/${slug}`;
 
   const products = profile.picks.map((p) => p.product);
 

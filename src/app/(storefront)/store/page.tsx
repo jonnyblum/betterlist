@@ -6,6 +6,7 @@ import { StorefrontHeader } from "@/components/storefront-header";
 import { StorefrontCatalog } from "@/components/storefront-catalog";
 import { DoctorNav } from "@/components/layout/doctor-nav";
 import { SPECIALTY_DEFAULT_CATEGORIES } from "@/lib/specialty-categories";
+import { getBaseUrl } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Sample Storefront — BetterList",
@@ -99,7 +100,7 @@ export default async function StoreDemoPage({ searchParams }: StorePageProps) {
         displayName={provider.name}
         specialty={provider.specialty}
         practiceName={null}
-        storefrontUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/store`}
+        storefrontUrl={`${getBaseUrl()}/store`}
         hideShare={!isSignedIn}
         demoSpecialties={DEMO_SPECIALTIES}
         demoActiveSpecialty={specialty}

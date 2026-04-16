@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { getBaseUrl } from "@/lib/utils";
 
 const HANDLING_FEE = parseFloat(process.env.HANDLING_FEE ?? "1.50");
 const AMAZON_FREE_SHIPPING = 25;
@@ -142,7 +143,7 @@ export async function POST(req: NextRequest) {
     // Determine primary retailer for metadata (amazon if any items there)
     const primaryRetailer = amazonSubtotal > 0 ? "amazon" : "walmart";
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const baseUrl = getBaseUrl();
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
