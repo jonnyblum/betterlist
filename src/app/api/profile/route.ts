@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { customCategories, displayName, avatarUrl } = body;
+  const { customCategories, displayName, avatarUrl, storefrontEnabled } = body;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data: Record<string, any> = {};
@@ -51,6 +51,13 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "avatarUrl must be a string or null" }, { status: 400 });
     }
     data.avatarUrl = avatarUrl;
+  }
+
+  if (storefrontEnabled !== undefined) {
+    if (typeof storefrontEnabled !== "boolean") {
+      return NextResponse.json({ error: "storefrontEnabled must be a boolean" }, { status: 400 });
+    }
+    data.storefrontEnabled = storefrontEnabled;
   }
 
   await db.doctorProfile.update({

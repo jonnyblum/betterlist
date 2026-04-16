@@ -38,6 +38,8 @@ interface StorefrontHeaderProps {
   demoActiveSpecialty?: string;
   /** If true, show edit controls on hover (owner viewing their own storefront) */
   isOwner?: boolean;
+  /** Initial publish state — only relevant when isOwner is true */
+  storefrontEnabled?: boolean;
 }
 
 export function StorefrontHeader({
@@ -50,11 +52,18 @@ export function StorefrontHeader({
   demoSpecialties,
   demoActiveSpecialty,
   isOwner = false,
+  storefrontEnabled: initialStorefrontEnabled = true,
 }: StorefrontHeaderProps) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
   const [urlCopied, setUrlCopied] = useState(false);
+
+  // Share dropdown (owner only)
+  const [shareOpen, setShareOpen] = useState(false);
+  const [isPublished, setIsPublished] = useState(initialStorefrontEnabled);
+  const [publishLoading, setPublishLoading] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
 
   // Local optimistic state so the header updates immediately after save
   const [displayName, setDisplayName] = useState(initialDisplayName);
@@ -273,32 +282,133 @@ export function StorefrontHeader({
                 onSuccess={() => setSignInModalOpen(false)}
               />
             )}
-            {!hideShare && <button
-            onClick={handleShare}
-            title="Copy storefront link"
-            className={[
-              "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-              copied
-                ? "bg-sage-100 text-sage-700"
-                : "bg-white border border-[rgba(0,0,0,0.08)] text-muted hover:text-foreground hover:border-foreground/20",
-            ].join(" ")}
-          >
-            {copied ? (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="hidden sm:block">Copied</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                <span className="hidden sm:block">Share</span>
-              </>
+            {!hideShare && (
+              isOwner ? (
+                /* Owner: Share button → dropdown */
+                <div className="relative" ref={shareRef}>
+                  <button
+                    onClick={async () => {
+                      if (!isPublished) {
+                        // Publish and open dropdown so user sees the result
+                        setPublishLoading(true);
+                        try {
+                          await fetch("/api/profile", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ storefrontEnabled: true }),
+                          });
+                          setIsPublished(true);
+                          setShareOpen(true);
+                          router.refresh();
+                        } finally {
+                          setPublishLoading(false);
+                        }
+                      } else {
+                        setShareOpen((o) => !o);
+                      }
+                    }}
+                    disabled={publishLoading}
+                    className={[
+                      "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border disabled:opacity-50",
+                      isPublished
+                        ? "bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-100"
+                        : "bg-white border-[rgba(0,0,0,0.08)] text-muted hover:text-foreground hover:border-foreground/20",
+                    ].join(" ")}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <span className="hidden sm:block">
+                      {publishLoading ? "…" : isPublished ? "Published" : "Unpublished"}
+                    </span>
+                  </button>
+
+                  {shareOpen && (
+                    <>
+                      {/* Click-away */}
+                      <div className="fixed inset-0 z-40" onClick={() => setShareOpen(false)} />
+                      <div className="absolute right-0 top-10 z-50 w-72 bg-white rounded-2xl shadow-xl border border-[rgba(0,0,0,0.07)] p-4 flex flex-col gap-3">
+                        {/* URL display */}
+                        <div className="bg-black/[0.03] rounded-xl px-3 py-2">
+                          <p className="text-xs text-muted font-mono truncate">
+                            {storefrontUrl.replace(/^https?:\/\//, "")}
+                          </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={async () => {
+                              setPublishLoading(true);
+                              try {
+                                await fetch("/api/profile", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ storefrontEnabled: !isPublished }),
+                                });
+                                setIsPublished((p) => !p);
+                                router.refresh();
+                              } finally {
+                                setPublishLoading(false);
+                              }
+                            }}
+                            disabled={publishLoading}
+                            className="flex-1 py-2 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-xs font-semibold text-foreground hover:bg-black/[0.03] transition-all disabled:opacity-50"
+                          >
+                            {publishLoading ? "…" : isPublished ? "Unpublish" : "Publish"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(storefrontUrl).catch(() => {
+                                const input = document.createElement("input");
+                                input.value = storefrontUrl;
+                                document.body.appendChild(input);
+                                input.select();
+                                document.execCommand("copy");
+                                document.body.removeChild(input);
+                              });
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 2000);
+                            }}
+                            className="flex-1 py-2 px-3 rounded-xl bg-foreground text-white text-xs font-semibold hover:bg-[#222] transition-all"
+                          >
+                            {copied ? "Copied!" : "Copy link"}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                /* Non-owner: plain share button */
+                <button
+                  onClick={handleShare}
+                  title="Copy storefront link"
+                  className={[
+                    "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                    copied
+                      ? "bg-sage-100 text-sage-700"
+                      : "bg-white border border-[rgba(0,0,0,0.08)] text-muted hover:text-foreground hover:border-foreground/20",
+                  ].join(" ")}
+                >
+                  {copied ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="hidden sm:block">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                      <span className="hidden sm:block">Share</span>
+                    </>
+                  )}
+                </button>
+              )
             )}
-          </button>}
           </div>
         </div>
       </div>

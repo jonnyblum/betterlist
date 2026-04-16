@@ -6,6 +6,7 @@ import { StorefrontHeader } from "@/components/storefront-header";
 import { getBaseUrl } from "@/lib/utils";
 import { StorefrontCatalog } from "@/components/storefront-catalog";
 import { DoctorNav } from "@/components/layout/doctor-nav";
+import { StorefrontUnavailable } from "@/components/storefront-unavailable";
 
 interface StorefrontPageProps {
   params: Promise<{ "clinician-slug": string }>;
@@ -53,25 +54,9 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
   // Determine if the signed-in user is the owner of this storefront
   const isOwner = isSignedIn && session.user.id === profile.userId;
 
-  if (!profile.storefrontEnabled) {
-    return (
-      <>
-        {isOwner && (
-          <DoctorNav session={session} clinicianSlug={slug} />
-        )}
-        <div className="min-h-screen bg-background flex items-center justify-center px-4">
-          <div className="text-center max-w-sm">
-            <p className="text-2xl mb-3">🔒</p>
-            <h1 className="text-lg font-semibold text-foreground mb-2">
-              Storefront unavailable
-            </h1>
-            <p className="text-sm text-muted">
-              This provider&apos;s storefront is currently unavailable.
-            </p>
-          </div>
-        </div>
-      </>
-    );
+  // Non-owners can't view an unpublished storefront
+  if (!profile.storefrontEnabled && !isOwner) {
+    return <StorefrontUnavailable isSignedIn={isSignedIn} />;
   }
 
   const storefrontUrl =
@@ -93,6 +78,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
         storefrontUrl={storefrontUrl}
         avatarUrl={profile.avatarUrl}
         isOwner={isOwner}
+        storefrontEnabled={profile.storefrontEnabled}
       />
 
       <div className="flex-1 overflow-hidden">
