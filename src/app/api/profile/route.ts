@@ -26,15 +26,36 @@ export async function PATCH(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { customCategories } = body;
+  const { customCategories, displayName, avatarUrl } = body;
 
-  if (!Array.isArray(customCategories) || !customCategories.every((v) => typeof v === "string")) {
-    return NextResponse.json({ error: "customCategories must be a string array" }, { status: 400 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: Record<string, any> = {};
+
+  if (customCategories !== undefined) {
+    if (!Array.isArray(customCategories) || !customCategories.every((v) => typeof v === "string")) {
+      return NextResponse.json({ error: "customCategories must be a string array" }, { status: 400 });
+    }
+    data.customCategories = customCategories;
+  }
+
+  if (displayName !== undefined) {
+    if (typeof displayName !== "string" || !displayName.trim()) {
+      return NextResponse.json({ error: "displayName must be a non-empty string" }, { status: 400 });
+    }
+    data.displayName = displayName.trim();
+  }
+
+  if (avatarUrl !== undefined) {
+    // Accept null (clear), data URLs, or https URLs
+    if (avatarUrl !== null && typeof avatarUrl !== "string") {
+      return NextResponse.json({ error: "avatarUrl must be a string or null" }, { status: 400 });
+    }
+    data.avatarUrl = avatarUrl;
   }
 
   await db.doctorProfile.update({
     where: { userId: session.user.id },
-    data: { customCategories },
+    data,
   });
 
   return NextResponse.json({ ok: true });

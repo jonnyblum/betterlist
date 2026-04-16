@@ -173,6 +173,35 @@ function RecommendationDrawer({
   );
 }
 
+// ─── Shared search bar ────────────────────────────────────────────────────────
+
+function SearchBar({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="relative py-3 border-b border-[rgba(0,0,0,0.04)]">
+      <svg className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#bbb]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+      </svg>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full pl-5 pr-6 text-sm text-foreground placeholder:text-[#ccc] bg-transparent focus:outline-none"
+      />
+      {value && (
+        <button
+          onClick={() => onChange("")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-foreground transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Recommendations tab ──────────────────────────────────────────────────────
 
 function RecommendationsTab({
@@ -182,67 +211,91 @@ function RecommendationsTab({
   rows: RecommendationRow[];
   onSelect: (rec: RecommendationRow) => void;
 }) {
-  if (rows.length === 0) {
-    return (
-      <div className="py-20 text-center">
-        <p className="text-sm text-muted">No recommendations sent yet</p>
-      </div>
-    );
-  }
+  const [search, setSearch] = useState("");
+
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? rows.filter((r) =>
+        (r.patientIdentifier ?? "").toLowerCase().includes(q) ||
+        formatDate(r.createdAt).toLowerCase().includes(q)
+      )
+    : rows;
 
   return (
-    <div className="divide-y divide-[rgba(0,0,0,0.04)]">
-      {rows.map((rec) => (
-        <button
-          key={rec.id}
-          onClick={() => onSelect(rec)}
-          className="w-full flex items-center gap-4 py-3.5 text-left hover:bg-black/[0.02] transition-colors -mx-5 px-5"
-        >
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {rec.patientIdentifier ?? "Unknown patient"}
-            </p>
-            <p className="text-xs text-muted mt-0.5">{formatDate(rec.createdAt)}</p>
-          </div>
-          <StatusBadge status={rec.status} />
-          <svg className="w-4 h-4 text-muted flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      ))}
-    </div>
+    <>
+      <SearchBar value={search} onChange={setSearch} placeholder="Search by name, phone, or date…" />
+      {filtered.length === 0 ? (
+        <div className="py-14 text-center">
+          <p className="text-sm text-muted">{search ? "No results" : "No recommendations sent yet"}</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          {filtered.map((rec) => (
+            <button
+              key={rec.id}
+              onClick={() => onSelect(rec)}
+              className="w-full flex items-center gap-4 py-3.5 text-left hover:bg-black/[0.02] transition-colors -mx-5 px-5"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {rec.patientIdentifier ?? "Unknown patient"}
+                </p>
+                <p className="text-xs text-muted mt-0.5">{formatDate(rec.createdAt)}</p>
+              </div>
+              <StatusBadge status={rec.status} />
+              <svg className="w-4 h-4 text-muted flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
 // ─── Orders tab ───────────────────────────────────────────────────────────────
 
 function OrdersTab({ rows }: { rows: OrderRow[] }) {
-  if (rows.length === 0) {
-    return (
-      <div className="py-20 text-center">
-        <p className="text-sm text-muted">No orders yet</p>
-      </div>
-    );
-  }
+  const [search, setSearch] = useState("");
+
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? rows.filter((o) =>
+        (o.recommendation.patientIdentifier ?? "").toLowerCase().includes(q) ||
+        formatDate(o.createdAt).toLowerCase().includes(q) ||
+        o.status.toLowerCase().includes(q) ||
+        o.items.some((i) => i.product.name.toLowerCase().includes(q))
+      )
+    : rows;
 
   return (
-    <div className="divide-y divide-[rgba(0,0,0,0.04)]">
-      {rows.map((order) => (
-        <div key={order.id} className="flex items-center gap-4 py-3.5">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {order.items.map((i) => i.product.name).join(", ")}
-            </p>
-            <p className="text-xs text-muted mt-0.5">
-              {order.recommendation.patientIdentifier ?? "Unknown patient"} · {formatDate(order.createdAt)}
-            </p>
-          </div>
-          <div className="text-right flex-shrink-0">
-            <p className="text-sm font-medium text-foreground">{formatPrice(order.total)}</p>
-          </div>
+    <>
+      <SearchBar value={search} onChange={setSearch} placeholder="Search by name, phone, product, or date…" />
+      {filtered.length === 0 ? (
+        <div className="py-14 text-center">
+          <p className="text-sm text-muted">{search ? "No results" : "No orders yet"}</p>
         </div>
-      ))}
-    </div>
+      ) : (
+        <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          {filtered.map((order) => (
+            <div key={order.id} className="flex items-center gap-4 py-3.5">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {order.items.map((i) => i.product.name).join(", ")}
+                </p>
+                <p className="text-xs text-muted mt-0.5">
+                  {order.recommendation.patientIdentifier ?? "Unknown patient"} · {formatDate(order.createdAt)}
+                </p>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className="text-sm font-medium text-foreground">{formatPrice(order.total)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -255,48 +308,65 @@ function FavoritesTab({
   rows: FavoriteRow[];
   onRemove: (productId: string) => void;
 }) {
-  if (rows.length === 0) {
-    return (
-      <div className="py-20 text-center">
-        <svg className="w-8 h-8 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 20V4z" />
-        </svg>
-        <p className="text-sm text-muted">No favorites yet. Add products from the builder.</p>
-      </div>
-    );
-  }
+  const [search, setSearch] = useState("");
+
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? rows.filter((r) =>
+        r.product.name.toLowerCase().includes(q) ||
+        r.product.brand.toLowerCase().includes(q)
+      )
+    : rows;
 
   return (
-    <div className="divide-y divide-[rgba(0,0,0,0.04)]">
-      {rows.map((row) => (
-        <div key={row.productId} className="flex items-center gap-3 py-3">
-          <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0">
-            {row.product.imageUrl ? (
-              <Image src={row.product.imageUrl} alt={row.product.name} fill className="object-cover" sizes="40px" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-xs font-semibold text-gray-300 select-none">
-                  {row.product.brand.slice(0, 2).toUpperCase()}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{row.product.name}</p>
-            <p className="text-xs text-muted">{row.product.brand}</p>
-          </div>
-          <button
-            onClick={() => onRemove(row.productId)}
-            className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-red-400 hover:bg-red-50 transition-all"
-            title="Remove from favorites"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <>
+      <SearchBar value={search} onChange={setSearch} placeholder="Search by item name or brand…" />
+      {filtered.length === 0 ? (
+        <div className="py-14 text-center">
+          {search ? (
+            <p className="text-sm text-muted">No results</p>
+          ) : (
+            <>
+              <svg className="w-8 h-8 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 20V4z" />
+              </svg>
+              <p className="text-sm text-muted">No favorites yet. Add products from the builder.</p>
+            </>
+          )}
         </div>
-      ))}
-    </div>
+      ) : (
+        <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          {filtered.map((row) => (
+            <div key={row.productId} className="flex items-center gap-3 py-3">
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0">
+                {row.product.imageUrl ? (
+                  <Image src={row.product.imageUrl} alt={row.product.name} fill className="object-cover" sizes="40px" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-gray-300 select-none">
+                      {row.product.brand.slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{row.product.name}</p>
+                <p className="text-xs text-muted">{row.product.brand}</p>
+              </div>
+              <button
+                onClick={() => onRemove(row.productId)}
+                className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-red-400 hover:bg-red-50 transition-all"
+                title="Remove from favorites"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 

@@ -1,18 +1,20 @@
 # BetterList
 
-Medical practices want to provide patients with trusted recommendations (devices, wellness apps, skincare, hygiene kits, supplements) outside of prescriptions and care plans, but don’t want the burden of inventory, fulfillment, or retail operations. So they scribble a brand name on a piece of paper, drop an Amazon link in the visit notes, or say it out loud and hope for the best. Most patients never buy it at all.
+Medical practices want to provide patients with trusted recommendations outside of prescriptions and careplans (devices, wellness apps, skincare, hygiene kits, supplements), but don’t want the burden of inventory, fulfillment, or retail operations. So they scribble a brand name on a piece of paper, drop an Amazon link in the visit notes, or say it out loud and hope for the best. Most patients never buy it at all.
 
-The answer? Betterlist reccomendation links. Patients can finally see exactly what is recommended and buy at the best price. For the practice it's no extra work; just pick products, select patient, and boom - a shoppable link is instantly sent. Hipaa compliant. We handle everything from fulfillment, returns, and compliance, so the provider stays focused on care.
+The answer? BetterList. Every provider gets a branded storefront where patients can browse the products their doctor actually recommends and buy them at the best price. Providers can also send a quick recommendation link directly to a patient. Either way, it's no extra work: pick products, share a link, and we handle everything from fulfillment to returns. HIPAA compliant.
 
 The core novelty: a provider's recommendation doesn't end at advice. It ends at delivery and better outcomes.
 
 ## Key Features
 
-- **Clinician-to-patient recommendation flow** — build a list, send a link, patient checks out
-- **Reusable Kits** — clinicians save product bundles for common protocols and reuse them
+- **Provider storefront** — each clinician gets a public, shareable page showcasing their recommended products; patients can browse, add to bag, and check out
+- **Personalized recommendation links** — build a product list for a specific patient, send it via phone or name, and track when they view or purchase
+- **Reusable Kits** — clinicians save product bundles for common protocols and reuse them across patients
 - **Smart retailer selection** — real-time Amazon and Walmart pricing pipeline, with shipping cost optimization to pick the best option per order
-- **Automated fulfillment** — physical products are ordered programatically (Amazon/Walmart); manual, digital, and affiliate products are handled separately
+- **Automated fulfillment** — physical products are ordered programmatically (Amazon/Walmart); manual, digital, and affiliate products are handled separately
 - **Recommendation lifecycle tracking** — SENT → VIEWED → PURCHASED with automated 48-hour follow-up reminders
+- **Activity & history** — providers can review all sent recommendations, patient orders, and saved product favorites in one place
 - **Multi-channel auth** — phone OTP (Twilio), email magic link, and token-based auto-login for patients
 
 ## Tech Stack

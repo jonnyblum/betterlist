@@ -12,9 +12,11 @@ interface DoctorNavProps {
   practiceSlug?: string;
   /** The signed-in clinician's own slug, used to link to their storefront */
   clinicianSlug?: string;
+  /** Hide the logo (e.g. on the /store demo page where the StorefrontHeader already brands the page) */
+  hideLogo?: boolean;
 }
 
-export function DoctorNav({ session, practiceSlug, clinicianSlug }: DoctorNavProps) {
+export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = false }: DoctorNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -87,13 +89,15 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug }: DoctorNavPro
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center">
         {/* Left: Logo */}
         <div className="flex-1 flex items-center">
-          <Link href={isSignedIn ? "/builder" : "/"} className="flex items-center gap-2">
-            <span className="text-lg leading-none">💊</span>
-            <span className="font-semibold text-sm hidden sm:block">BetterList</span>
-            {practiceSlug && (
-              <span className="text-muted text-sm hidden md:block">/ {practiceSlug}</span>
-            )}
-          </Link>
+          {!hideLogo && (
+            <Link href={isSignedIn ? "/builder" : "/"} className="flex items-center gap-2">
+              <span className="text-lg leading-none">💊</span>
+              <span className="font-semibold text-sm hidden sm:block">BetterList</span>
+              {practiceSlug && (
+                <span className="text-muted text-sm hidden md:block">/ {practiceSlug}</span>
+              )}
+            </Link>
+          )}
         </div>
 
         {/* Center: Nav items */}

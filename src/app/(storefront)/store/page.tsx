@@ -18,10 +18,10 @@ const DEMO_SPECIALTIES = ["Dermatology", "Cardiology", "Primary Care", "Dentistr
 type DemoSpecialty = typeof DEMO_SPECIALTIES[number];
 
 const DEMO_PROVIDER: Record<DemoSpecialty, { name: string; specialty: DemoSpecialty }> = {
-  "Dermatology":  { name: "Dr. Sarah Chen",    specialty: "Dermatology"  },
-  "Cardiology":   { name: "Dr. James Rivera",  specialty: "Cardiology"   },
-  "Primary Care": { name: "Dr. Maya Patel",    specialty: "Primary Care" },
-  "Dentistry":    { name: "Dr. Thomas Brooks", specialty: "Dentistry"    },
+  "Dermatology":  { name: "Dr. Sarah Chen, MD",    specialty: "Dermatology"  },
+  "Cardiology":   { name: "Dr. James Rivera, MD",  specialty: "Cardiology"   },
+  "Primary Care": { name: "Dr. Maya Patel, DO",    specialty: "Primary Care" },
+  "Dentistry":    { name: "Dr. Thomas Brooks, DDS", specialty: "Dentistry"    },
 };
 
 interface StorePageProps {
@@ -94,7 +94,7 @@ export default async function StoreDemoPage({ searchParams }: StorePageProps) {
 
   return (
     <div className="flex flex-col h-screen">
-      <DoctorNav session={session} />
+      <DoctorNav session={session} hideLogo />
 
       <StorefrontHeader
         displayName={provider.name}

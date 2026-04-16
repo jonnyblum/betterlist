@@ -34,6 +34,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
       userId: true,
       displayName: true,
       specialty: true,
+      avatarUrl: true,
       storefrontEnabled: true,
       customCategories: true,
       practice: { select: { name: true } },
@@ -82,7 +83,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
     <div className="flex flex-col h-screen">
       {/* DoctorNav shown only to the clinician who owns this storefront */}
       {isOwner && (
-        <DoctorNav session={session} clinicianSlug={slug} />
+        <DoctorNav session={session} clinicianSlug={slug} hideLogo />
       )}
 
       <StorefrontHeader
@@ -90,7 +91,8 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
         specialty={profile.specialty}
         practiceName={profile.practice?.name ?? null}
         storefrontUrl={storefrontUrl}
-
+        avatarUrl={profile.avatarUrl}
+        isOwner={isOwner}
       />
 
       <div className="flex-1 overflow-hidden">
