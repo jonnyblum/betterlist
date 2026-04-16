@@ -1,8 +1,8 @@
 # BetterList
 
-Medical practices want to provide patients with trusted recommendations outside of prescriptions and careplans (devices, wellness apps, skincare, hygiene kits, supplements), but don’t want the burden of inventory, fulfillment, or retail operations. So they scribble a brand name on a piece of paper, drop an Amazon link in the visit notes, or say it out loud and hope for the best. Most patients never buy it at all.
+Medical practices want to provide patients with trusted recommendations (devices, wellness apps, skincare, hygiene kits, supplements) outside of prescriptions and careplans, but don’t want the burden of inventory, fulfillment, or retail operations. So they scribble a brand name on a piece of paper, drop an Amazon link in the visit notes, or say it out loud and hope for the best. Most patients never buy it at all.
 
-The answer? BetterList. Every provider gets a branded storefront where patients can browse the products their doctor actually recommends and buy them at the best price. Providers can also send a quick recommendation link directly to a patient. Either way, it's no extra work: pick products, share a link, and we handle everything from fulfillment to returns. HIPAA compliant.
+The answer? BetterList. Every provider gets a branded storefront where patients can browse the products their doctor actually recommends and buy them at the guaranteed best price. Providers can also send quick personalized recommendation links to a patient. Either way, it's no extra work for the provider: pick products, share a link, earn some extra revenue, and let us handle everything from fulfillment to returns. HIPAA compliant.
 
 The core novelty: a provider's recommendation doesn't end at advice. It ends at delivery and better outcomes.
 
