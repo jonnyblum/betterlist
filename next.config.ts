@@ -15,6 +15,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.media-amazon.com",
       },
+      {
+        protocol: "https",
+        hostname: "images.seeklogo.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.prod.website-files.com",
+      },
+      {
+        protocol: "https",
+        hostname: "hips.hearstapps.com",
+      }
     ],
   },
   experimental: {

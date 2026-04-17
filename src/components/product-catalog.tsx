@@ -31,11 +31,11 @@ import type { CatalogProduct } from "@/lib/types/catalog";
 
 const CATEGORY_DEFS: { value: string; label: string }[] = [
   { value: "SUPPLEMENTS", label: "Supplements" },
+  { value: "APPS",        label: "Apps" },
+  { value: "WEARABLES",   label: "Wearables" },
   { value: "DEVICES",     label: "Devices" },
   { value: "COSMETIC",    label: "Skincare" },
   { value: "DENTAL",      label: "Dental" },
-  { value: "APPS",        label: "Apps" },
-  { value: "WEARABLES",   label: "Wearables" },
   { value: "OTHER",       label: "Other" },
 ];
 
