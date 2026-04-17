@@ -157,6 +157,12 @@ export function SignInModal({ onClose, onSuccess, defaultRole }: SignInModalProp
                 <p className="text-muted text-sm mt-1">Please sign in or sign up below.</p>
               </div>
               <SignInForm callbackUrl="/builder" onSignInComplete={handleSignInComplete} />
+              <p className="text-center text-[11px] text-muted mt-4 whitespace-nowrap">
+                By continuing you agree to our{" "}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Terms</a>
+                {" & "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>
+              </p>
             </>
           )}
 
@@ -278,14 +284,6 @@ export function SignInModal({ onClose, onSuccess, defaultRole }: SignInModalProp
           )}
         </div>
 
-        {step === "auth" && (
-          <p className="text-center text-xs text-muted mt-6">
-            By signing in you agree to our{" "}
-            <a href="#" className="underline underline-offset-2 hover:text-foreground">Terms</a>{" "}
-            and{" "}
-            <a href="#" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>
-          </p>
-        )}
       </div>
     </div>
   );
