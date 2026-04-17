@@ -165,20 +165,30 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => router.push("/sign-in")}
-                className="text-sm text-[#777] hover:text-[#333] transition-colors font-medium"
-              >
-                Log in
-              </button>
+            <>
+              {/* Mobile: single button */}
               <button
                 onClick={() => setSignInModalOpen(true)}
-                className="text-sm font-semibold bg-foreground text-white px-3.5 py-1.5 rounded-lg hover:bg-[#333] transition-colors"
+                className="sm:hidden text-sm font-semibold bg-foreground text-white px-3.5 py-1.5 rounded-lg hover:bg-[#333] transition-colors"
               >
-                Create account
+                Sign in
               </button>
-            </div>
+              {/* Desktop: two buttons */}
+              <div className="hidden sm:flex items-center gap-3">
+                <button
+                  onClick={() => router.push("/sign-in")}
+                  className="text-sm text-[#777] hover:text-[#333] transition-colors font-medium"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => setSignInModalOpen(true)}
+                  className="text-sm font-semibold bg-foreground text-white px-3.5 py-1.5 rounded-lg hover:bg-[#333] transition-colors"
+                >
+                  Create account
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>

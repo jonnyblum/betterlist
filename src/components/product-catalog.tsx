@@ -381,6 +381,12 @@ interface ProductCatalogProps {
   onAddToBag?: (product: import("@/lib/types/catalog").CatalogProduct) => void;
   /** Product IDs currently in the bag (used to show filled state) */
   bagProductIds?: string[];
+  /** Items currently in the bag — used to render the inline bag widget in storefront mode */
+  bag?: CatalogProduct[];
+  /** Sum of prices for items in the bag */
+  bagTotal?: number;
+  /** Called when the user clicks the inline bag widget */
+  onViewBag?: () => void;
 }
 
 export function ProductCatalog({
@@ -414,6 +420,9 @@ export function ProductCatalog({
   onGetThis,
   onAddToBag,
   bagProductIds,
+  bag,
+  bagTotal = 0,
+  onViewBag,
 }: ProductCatalogProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
@@ -645,7 +654,7 @@ export function ProductCatalog({
     const observer = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
       setCols(isStorefront
-        ? (w < 640 ? 2 : w < 900 ? 3 : w < 1200 ? 4 : 5)
+        ? (w < 640 ? 2 : w < 900 ? 3 : 4)
         : (w < 640 ? 2 : w < 1024 ? 3 : 4)
       );
     });
@@ -732,38 +741,100 @@ export function ProductCatalog({
   });
 
   // Centering wrapper class used in storefront to align content with the header's max-w-7xl
-  const storefrontInner = isStorefront ? "max-w-7xl mx-auto" : "";
+  const storefrontInner = isStorefront ? "max-w-[1100px] mx-auto" : "";
+  // Outer horizontal padding — storefront gets extra desktop padding to match the narrower feel
+  const outerPad = isStorefront ? "px-4 sm:px-6 lg:px-16" : "px-4 sm:px-6";
 
   return (
     <div className="flex flex-col h-full">
       {/* Search bar */}
-      <div className="px-4 sm:px-6 pt-4 pb-3">
+      <div className={`${outerPad} pt-4 pb-3`}>
         <div className={storefrontInner}>
-        <Input
-          type="text"
-          placeholder={showMyPicks ? "Search to add favorites..." : "Search products, brands, or tags..."}
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          leftIcon={
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          }
-          rightElement={
-            search ? (
-              <button onClick={() => handleSearchChange("")} className="text-muted hover:text-foreground p-1">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+          {isStorefront ? (
+            <div className="flex items-center gap-2.5">
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  placeholder="Search products, brands, or tags..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  leftIcon={
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  }
+                  rightElement={
+                    search ? (
+                      <button onClick={() => handleSearchChange("")} className="text-muted hover:text-foreground p-1">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    ) : undefined
+                  }
+                />
+              </div>
+              {/* Inline bag widget */}
+              <button
+                onClick={bag && bag.length > 0 ? onViewBag : undefined}
+                className={[
+                  "relative flex-shrink-0 flex items-center gap-2 px-3.5 py-3 rounded-xl border transition-all",
+                  bag && bag.length > 0
+                    ? "bg-[#faf8f5] border-[rgba(0,0,0,0.10)] text-foreground hover:bg-[#f3f0eb] hover:border-[rgba(0,0,0,0.16)] shadow-sm cursor-pointer"
+                    : "bg-[#faf8f5] border-[rgba(0,0,0,0.10)] text-foreground cursor-default",
+                ].join(" ")}
+                aria-label="View bag"
+              >
+                {bag && bag.length > 0 && (
+                  <span className="absolute -top-2 -right-2 w-[22px] h-[22px] rounded-full bg-foreground text-white text-[11px] font-bold flex items-center justify-center leading-none z-10">
+                    {bag.length}
+                  </span>
+                )}
+                <div>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 11H4L5 9z" />
+                  </svg>
+                </div>
+                <div className="hidden sm:flex flex-col items-start leading-none">
+                  <span className="text-xs font-semibold text-current">
+                    {bag && bag.length > 0 ? "Your bag" : "Bag"}
+                  </span>
+                  {bag && bag.length > 0 && bagTotal > 0 && (
+                    <span className="text-[11px] text-muted mt-0.5">${bagTotal.toFixed(2)}</span>
+                  )}
+                  {bag && bag.length > 0 && bagTotal === 0 && (
+                    <span className="text-[11px] text-muted mt-0.5">{bag.length} {bag.length === 1 ? "item" : "items"}</span>
+                  )}
+                </div>
               </button>
-            ) : undefined
-          }
-        />
+            </div>
+          ) : (
+            <Input
+              type="text"
+              placeholder={showMyPicks ? "Search to add favorites..." : "Search products, brands, or tags..."}
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              leftIcon={
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              }
+              rightElement={
+                search ? (
+                  <button onClick={() => handleSearchChange("")} className="text-muted hover:text-foreground p-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                ) : undefined
+              }
+            />
+          )}
         </div>
       </div>
 
       {/* Filter row */}
-      <div className="px-4 sm:px-6 pb-3">
+      <div className={`${outerPad} pb-3`}>
         <div className={storefrontInner}>
         <div className="flex items-center gap-1.5">
           {/* Scrollable pills — flex-1 so the + More button stays pinned right */}
@@ -925,7 +996,7 @@ export function ProductCatalog({
       {/* Product grid */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {showFavoritesEmptyState ? (
-          <div className="px-4 sm:px-6 py-16 text-center">
+          <div className={`${outerPad} py-16 text-center`}>
             <svg className="w-8 h-8 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 20V4z" />
             </svg>
@@ -934,7 +1005,7 @@ export function ProductCatalog({
 
         ) : isVirtualMode && displayProducts.length === 0 && isRfLoading ? (
           /* No DB matches yet but Rainforest is loading — show skeleton immediately */
-          <div className="px-4 sm:px-6 pt-1 pb-6">
+          <div className={`${outerPad} pt-1 pb-6`}>
             <div className={storefrontInner}>
             <p className="text-xs text-muted mb-3 invisible">loading</p>
             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
@@ -946,7 +1017,7 @@ export function ProductCatalog({
           </div>
 
         ) : isVirtualMode && displayProducts.length === 0 ? (
-          <div className="px-4 sm:px-6 py-16 text-center">
+          <div className={`${outerPad} py-16 text-center`}>
             <p className="text-muted text-sm">No products found.</p>
             <button
               onClick={() => { handleSearchChange(""); handleCategoryChange("ALL"); }}
@@ -958,7 +1029,7 @@ export function ProductCatalog({
 
         ) : isVirtualMode ? (
           /* ── Virtual scrolling grid (main catalog mode) ────────────────────── */
-          <div className="px-4 sm:px-6 pt-1 pb-6">
+          <div className={`${outerPad} pt-1 pb-6`}>
             <div className={storefrontInner}>
             <p className="text-xs text-muted mb-3">
               {displayProducts.length} product{displayProducts.length !== 1 ? "s" : ""}

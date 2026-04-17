@@ -121,25 +121,10 @@ function StorefrontCatalogContent({
         isStorefront={true}
         onAddToBag={handleAddToBag}
         bagProductIds={bagProductIds}
+        bag={bag}
+        bagTotal={bagTotal}
+        onViewBag={() => setBagOpen(true)}
       />
-
-      {/* Floating "View Bag" button */}
-      {bag.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 sm:left-auto sm:translate-x-0 sm:right-6 sm:bottom-6">
-          <button
-            onClick={() => setBagOpen(true)}
-            className="flex items-center gap-2.5 bg-foreground text-white px-5 py-3 rounded-2xl shadow-lg hover:bg-[#222] transition-all active:scale-95"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 11H4L5 9z" />
-            </svg>
-            <span className="text-sm font-semibold">
-              View Bag ({bag.length} {bag.length === 1 ? "item" : "items"}
-              {bagTotal > 0 ? ` · $${bagTotal.toFixed(2)}` : ""})
-            </span>
-          </button>
-        </div>
-      )}
 
       {/* Bag drawer */}
       {bagOpen && (

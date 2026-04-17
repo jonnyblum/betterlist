@@ -154,8 +154,8 @@ export function StorefrontHeader({
 
   return (
     <>
-      <div className="bg-white border-b border-black/[0.06] px-4 sm:px-6 py-8">
-        <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
+      <div className="bg-white border-b border-black/[0.06] px-4 sm:px-6 lg:px-16 py-8">
+        <div className="max-w-[1100px] mx-auto flex items-start justify-between gap-4">
           {/* Left: avatar + info */}
           <div className="flex items-center gap-4">
             {/* Avatar */}
@@ -272,7 +272,7 @@ export function StorefrontHeader({
                   onClick={() => setSignInModalOpen(true)}
                   className="text-foreground font-medium hover:underline underline-offset-2"
                 >
-                  Create yours free →
+                  Create yours for free →
                 </button>
               </p>
             )}
