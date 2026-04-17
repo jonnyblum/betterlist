@@ -7,6 +7,7 @@ import { seedClinicianKits, getDefaultCategories } from "@/lib/setup-new-clinici
 import { enqueueRecommendation, enqueueReminderIn } from "@/lib/queue";
 import { getShareUrl } from "@/lib/utils";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { normalizePhone } from "@/lib/utils";
 import type { KitWithItems } from "@/lib/types/kit";
 
 const GuestSignupSchema = z.object({
@@ -36,7 +37,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { firstName, lastName, specialty, patientIdentifier, productIds, quantities = {}, note } = parsed.data;
+    const { firstName, lastName, specialty, productIds, quantities = {}, note } = parsed.data;
+    const isEmailIdentifier = parsed.data.patientIdentifier.includes("@");
+    let patientIdentifier = parsed.data.patientIdentifier;
+    if (!isEmailIdentifier) {
+      const normalized = normalizePhone(patientIdentifier);
+      if (!normalized) {
+        return NextResponse.json(
+          { error: "Please enter a valid US phone number" },
+          { status: 400 }
+        );
+      }
+      patientIdentifier = normalized;
+    }
     const displayName = `${firstName} ${lastName}`;
 
     // Validate products
@@ -76,8 +89,7 @@ export async function POST(req: NextRequest) {
 
       // 4. Find patient if they already have an account
       let patientId: string | null = null;
-      const isEmail = patientIdentifier.includes("@");
-      if (isEmail) {
+      if (isEmailIdentifier) {
         const patient = await tx.user.findUnique({ where: { email: patientIdentifier } });
         if (patient) patientId = patient.id;
       } else {

@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import { enqueueRecommendation, enqueueReminderIn } from "@/lib/queue";
 import { getShareUrl } from "@/lib/utils";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { normalizePhone } from "@/lib/utils";
 
 const GuestRecommendationSchema = z.object({
   patientIdentifier: z.string().min(1).max(320),
@@ -31,7 +32,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { patientIdentifier, productIds, quantities = {}, note } = parsed.data;
+    const isEmailIdentifier = parsed.data.patientIdentifier.includes("@");
+    let patientIdentifier = parsed.data.patientIdentifier;
+    if (!isEmailIdentifier) {
+      const normalized = normalizePhone(patientIdentifier);
+      if (!normalized) {
+        return NextResponse.json(
+          { error: "Please enter a valid US phone number" },
+          { status: 400 }
+        );
+      }
+      patientIdentifier = normalized;
+    }
+    const { productIds, quantities = {}, note } = parsed.data;
 
     // Validate all products exist
     const products = await db.product.findMany({ where: { id: { in: productIds } } });
@@ -41,8 +54,7 @@ export async function POST(req: NextRequest) {
 
     // Find patient if they have an account
     let patientId: string | null = null;
-    const isEmail = patientIdentifier.includes("@");
-    if (isEmail) {
+    if (isEmailIdentifier) {
       const patient = await db.user.findUnique({ where: { email: patientIdentifier } });
       if (patient) patientId = patient.id;
     } else {

@@ -272,7 +272,7 @@ export function StorefrontHeader({
                   onClick={() => setSignInModalOpen(true)}
                   className="text-foreground font-medium hover:underline underline-offset-2"
                 >
-                  Create yours for free →
+                  Create yours free →
                 </button>
               </p>
             )}

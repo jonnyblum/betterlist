@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendOTP } from "@/lib/twilio";
 import { z } from "zod";
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
+import { normalizePhone } from "@/lib/utils";
 
 const SendOTPSchema = z.object({
   phone: z.string().regex(/^\+[1-9]\d{7,14}$/, "Invalid phone number format"),
@@ -19,11 +20,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const parsed = SendOTPSchema.safeParse(body);
+    const normalized = normalizePhone(body?.phone ?? "");
+    if (!normalized) {
+      return NextResponse.json(
+        { error: "Please enter a valid US phone number" },
+        { status: 400 }
+      );
+    }
 
+    const parsed = SendOTPSchema.safeParse({ phone: normalized });
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.errors[0]?.message ?? "Invalid phone number" },
+        { error: "Please enter a valid US phone number" },
         { status: 400 }
       );
     }

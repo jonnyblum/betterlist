@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { enqueueRecommendation, enqueueReminderIn } from "@/lib/queue";
 import { getShareUrl } from "@/lib/utils";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { normalizePhone } from "@/lib/utils";
 
 const CreateRecommendationSchema = z.object({
   patientIdentifier: z.string().min(1, "Patient phone or email is required").max(320),
@@ -41,7 +42,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { patientIdentifier, productIds, quantities = {}, note } = parsed.data;
+    const isEmailIdentifier = parsed.data.patientIdentifier.includes("@");
+    let patientIdentifier = parsed.data.patientIdentifier;
+    if (!isEmailIdentifier) {
+      const normalized = normalizePhone(patientIdentifier);
+      if (!normalized) {
+        return NextResponse.json(
+          { error: "Please enter a valid US phone number" },
+          { status: 400 }
+        );
+      }
+      patientIdentifier = normalized;
+    }
+    const { productIds, quantities = {}, note } = parsed.data;
 
     // Find doctor profile — this is the authoritative clinician check (avoids stale JWT role)
     const doctorProfile = await db.doctorProfile.findUnique({
@@ -70,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     // Find or create patient
     let patientId: string | null = null;
-    const isEmail = patientIdentifier.includes("@");
+    const isEmail = isEmailIdentifier;
 
     if (isEmail) {
       const patient = await db.user.findUnique({ where: { email: patientIdentifier } });

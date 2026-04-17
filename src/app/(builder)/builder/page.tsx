@@ -174,9 +174,12 @@ function BuilderContent() {
       return;
     }
 
-    const identifier = isValidPhone(patientIdentifier)
-      ? normalizePhone(patientIdentifier)
-      : patientIdentifier;
+    const normalized = isValidPhone(patientIdentifier) ? normalizePhone(patientIdentifier) : null;
+    if (isValidPhone(patientIdentifier) && !normalized) {
+      setSendError("Please enter a valid US phone number.");
+      return;
+    }
+    const identifier = normalized ?? patientIdentifier;
 
     setSending(true);
     try {

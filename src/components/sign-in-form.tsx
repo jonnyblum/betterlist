@@ -59,6 +59,7 @@ export function SignInForm({ callbackUrl = "/", defaultTab = "email", onSignInCo
     setLoading(true);
     try {
       const normalized = normalizePhone(phoneValue);
+      if (!normalized) { setError("Please enter a valid US phone number."); return; }
       const res = await fetch("/api/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -87,6 +88,7 @@ export function SignInForm({ callbackUrl = "/", defaultTab = "email", onSignInCo
     setLoading(true);
     try {
       const normalized = normalizePhone(phoneValue);
+      if (!normalized) { setError("Please enter a valid US phone number."); return; }
       const result = await signIn("phone-otp", {
         phone: normalized,
         code: otpCode,

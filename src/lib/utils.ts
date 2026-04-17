@@ -36,11 +36,22 @@ export function isValidPhone(phone: string): boolean {
   return /^\+?[1-9]\d{9,14}$/.test(phone.replace(/[\s\-().]/g, ""));
 }
 
-export function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length === 10) return `+1${digits}`;
+/**
+ * Normalizes any common US phone format to E.164 (+1XXXXXXXXXX).
+ * Returns null if the input cannot be resolved to a valid phone number.
+ *
+ * Accepts: 10 digits, 11 digits with leading 1, dashes/parens/spaces,
+ * already-valid E.164 (+12158500642), and international E.164 (+44...).
+ */
+export function normalizePhone(phone: string): string | null {
+  const digits = phone.trim().replace(/\D/g, "");
+  // US area codes cannot start with 0 or 1 (NANP rule), so 10-digit numbers
+  // starting with 0 or 1 (e.g. 1234567890) are structurally invalid.
+  if (digits.length === 10 && digits[0] !== "0" && digits[0] !== "1") return `+1${digits}`;
   if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
-  return `+${digits}`;
+  // Non-US E.164 already provided (e.g. +447911123456) — validate shape but keep as-is
+  if (phone.trim().startsWith("+") && /^\+[1-9]\d{7,14}$/.test(`+${digits}`)) return `+${digits}`;
+  return null;
 }
 
 export function slugify(text: string): string {

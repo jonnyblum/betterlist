@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
 import type { Session } from "next-auth";
 import { SignInModal } from "@/components/sign-in-modal";
+import { SendHorizonal } from "lucide-react";
 
 interface DoctorNavProps {
   session: Session | null;
@@ -44,7 +45,7 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
       label: "Storefront",
       icon: (
         /* Store / shop icon */
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path d="M3 10h18" strokeLinecap="round"/>
     <path d="M4 10l1-4h14l1 4" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M5 10v9a2 2 0 002 2h10a2 2 0 002-2v-9" strokeLinecap="round"/>
@@ -58,9 +59,20 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
       href: "/builder",
       label: "Recommend",
       icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
+        // Plus icon
+        // <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        //   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        // </svg>
+
+        // //Forward icon
+        // <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        //   <path d="M14 4l6 6-6 6" />
+        //   <path d="M20 10H9a5 5 0 0 0-5 5v1" />
+        // </svg>
+
+        <SendHorizonal className="w-4 h-4" />
+        
+
       ),
       guestAllowed: true,
     },
@@ -68,7 +80,7 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
       href: "/activity",
       label: "History",
       icon: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>

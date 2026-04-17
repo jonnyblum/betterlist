@@ -9,7 +9,11 @@ import { z } from "zod";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60,   // 7 days (down from NextAuth default of 30)
+    updateAge: 24 * 60 * 60,     // Re-sign token once per day
+  },
   pages: {
     signIn: "/sign-in",
     error: "/sign-in",
