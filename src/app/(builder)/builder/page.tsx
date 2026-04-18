@@ -515,7 +515,7 @@ function BuilderContent() {
 
       {/* Mobile: floating cart button */}
       {!isMobileSheetOpen && (
-        <div className="lg:hidden fixed bottom-6 right-4 left-4 z-30">
+        <div className="lg:hidden fixed bottom-4 right-4 left-4 z-30">
           <button
             onClick={() => setIsMobileSheetOpen(true)}
             className="w-full bg-foreground text-white rounded-2xl py-4 px-5 flex items-center justify-between shadow-xl active:scale-[0.98] transition-transform"

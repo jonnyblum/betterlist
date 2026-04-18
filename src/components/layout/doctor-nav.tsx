@@ -45,7 +45,7 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
       label: "Storefront",
       icon: (
         /* Store / shop icon */
-  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg className="w-6 h-6 sm:w-[18px] sm:h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path d="M3 10h18" strokeLinecap="round"/>
     <path d="M4 10l1-4h14l1 4" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M5 10v9a2 2 0 002 2h10a2 2 0 002-2v-9" strokeLinecap="round"/>
@@ -70,7 +70,7 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
         //   <path d="M20 10H9a5 5 0 0 0-5 5v1" />
         // </svg>
 
-        <SendHorizonal className="w-4 h-4" />
+        <SendHorizonal className="w-[22px] h-[22px] sm:w-4 sm:h-4" />
         
 
       ),
@@ -80,7 +80,7 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
       href: "/activity",
       label: "History",
       icon: (
-    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className="w-6 h-6 sm:w-[18px] sm:h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -131,7 +131,7 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
                   }
                 }}
                 className={[
-                  "relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all h-14",
+                  "relative flex items-center gap-1.5 px-[18px] sm:px-3 py-1.5 rounded-lg text-sm transition-all h-14",
                   active
                     ? "text-[#111] font-semibold after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[1.5px] after:bg-[#555] after:rounded-t-full"
                     : "text-[#999] font-medium hover:text-[#555]",
@@ -178,15 +178,15 @@ export function DoctorNav({ session, practiceSlug, clinicianSlug, hideLogo = fal
             </div>
           ) : (
             <>
-              {/* Mobile: single button */}
+              {/* Mobile + tablet: single button */}
               <button
                 onClick={() => setSignInModalOpen(true)}
-                className="sm:hidden text-sm font-semibold bg-foreground text-white px-3.5 py-1.5 rounded-lg hover:bg-[#333] transition-colors"
+                className="lg:hidden text-sm font-semibold bg-foreground text-white px-3.5 py-1.5 rounded-lg hover:bg-[#333] transition-colors"
               >
                 Sign in
               </button>
               {/* Desktop: two buttons */}
-              <div className="hidden sm:flex items-center gap-3">
+              <div className="hidden lg:flex items-center gap-3">
                 <button
                   onClick={() => router.push("/sign-in")}
                   className="text-sm text-[#777] hover:text-[#333] transition-colors font-medium"
