@@ -16,6 +16,12 @@ export const metadata: Metadata = {
     siteName: "BetterList",
     title: "BetterList — Recommended Products",
     description: "Your doctor's curated product recommendations.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BetterList — Recommended Products",
+    description: "Your doctor's curated product recommendations.",
   },
 };
 
