@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import type { ProductCategory } from "@prisma/client";
 import { StorefrontHeader } from "@/components/storefront-header";
+
 import { StorefrontCatalog } from "@/components/storefront-catalog";
 import { DoctorNav } from "@/components/layout/doctor-nav";
 import { SPECIALTY_DEFAULT_CATEGORIES } from "@/lib/specialty-categories";
@@ -13,15 +13,76 @@ export const metadata: Metadata = {
   description: "See what a BetterList provider storefront looks like.",
 };
 
-// Demo provider config
 const DEMO_SPECIALTIES = ["Dermatology", "Cardiology", "Primary Care", "Dentistry"] as const;
 type DemoSpecialty = typeof DEMO_SPECIALTIES[number];
 
 const DEMO_PROVIDER: Record<DemoSpecialty, { name: string; specialty: DemoSpecialty }> = {
-  "Dermatology":  { name: "Dr. Sarah Chen, MD",    specialty: "Dermatology"  },
-  "Cardiology":   { name: "Dr. James Rivera, MD",  specialty: "Cardiology"   },
-  "Primary Care": { name: "Dr. Maya Patel, DO",    specialty: "Primary Care" },
+  "Dermatology":  { name: "Dr. Sarah Chen, MD",     specialty: "Dermatology"  },
+  "Cardiology":   { name: "Dr. James Rivera, MD",   specialty: "Cardiology"   },
+  "Primary Care": { name: "Dr. Maya Patel, DO",     specialty: "Primary Care" },
   "Dentistry":    { name: "Dr. Thomas Brooks, DDS", specialty: "Dentistry"    },
+};
+
+// Ordered list of partial name matches per specialty.
+// Products are shown in this order; unmatched entries are silently skipped.
+const SPECIALTY_PRODUCTS: Record<DemoSpecialty, string[]> = {
+  "Dermatology": [
+    "EltaMD UV Clear",
+    "CeraVe Moisturizing Cream",
+    "La Roche-Posay Anthelios Melt-In Milk Sunscreen SPF 100",
+    "CeraVe Hydrating Facial Cleanser",
+    "La Roche-Posay Toleriane",
+    "Neutrogena Rapid Wrinkle Repair",
+    "Nordic Naturals Ultimate Omega",
+    "Vital Proteins Collagen Peptides",
+    "Nature Made Vitamin D3",
+    "Pure Encapsulations Magnesium",
+    "Calm",
+    "Headspace",
+  ],
+  "Cardiology": [
+    "OMRON Platinum",
+    "OMRON Silver",
+    "KardiaMobile",
+    "Zacurate Pro Series 500DL",
+    "Innovo Deluxe",
+    "Bayer Aspirin Low Dose",
+    "Nordic Naturals Ultimate Omega",
+    "Apple Watch",
+    "WHOOP",
+    "Garmin Forerunner",
+    "MyFitnessPal",
+    "Strava",
+  ],
+  "Primary Care": [
+    "Nature Made Vitamin D3",
+    "Nordic Naturals Ultimate Omega",
+    "Pure Encapsulations Magnesium",
+    "Physician's CHOICE",
+    "Nature Made Super B Complex",
+    "Emergen-C",
+    "NatureWise Vitamin D3",
+    "OMRON Silver",
+    "Garmin Forerunner",
+    "Apple Watch",
+    "Fitbit Charge 6",
+    "Noom",
+    "MyFitnessPal",
+  ],
+  "Dentistry": [
+    "Oral-B Pro 1000 Rechargeable Electric Toothbrush, Black",
+    "Philips Sonicare 4100",
+    "Waterpik Aquarius",
+    "Crest Pro-Health Gum Detoxify",
+    "Listerine Total Care",
+    "Oral-B Pro 1000 Rechargeable Electric Toothbrush, White",
+    "Nordic Naturals Ultimate Omega",
+    "Nature Made Vitamin D3",
+    "Physician's CHOICE",
+    "Pure Encapsulations Magnesium",
+    "Calm",
+    "Headspace",
+  ],
 };
 
 interface StorePageProps {
@@ -39,55 +100,16 @@ export default async function StoreDemoPage({ searchParams }: StorePageProps) {
   const provider = DEMO_PROVIDER[specialty];
   const categories = SPECIALTY_DEFAULT_CATEGORIES[specialty] ?? [];
 
-  // How many products to pull per category — weighted by priority (first category gets most)
-  const PER_CATEGORY_COUNTS: Record<DemoSpecialty, Record<string, number>> = {
-    "Dermatology":  { COSMETIC: 5, SUPPLEMENTS: 3, DEVICES: 2, APPS: 2 },
-    "Cardiology":   { DEVICES: 5, SUPPLEMENTS: 3, WEARABLES: 2, APPS: 2 },
-    "Primary Care": { SUPPLEMENTS: 5, DEVICES: 3, APPS: 2, WEARABLES: 2 },
-    "Dentistry":    { DENTAL: 5, SUPPLEMENTS: 4, DEVICES: 2, APPS: 1 },
-  };
-  const counts = PER_CATEGORY_COUNTS[specialty];
+  const allProducts = await db.product.findMany({
+    where: { imageUrl: { not: null } },
+  });
 
-  // Fetch products per category in parallel, each with a name-based offset unique to the specialty
-  // so overlapping categories (e.g. SUPPLEMENTS) surface different products per specialty
-  const SPECIALTY_OFFSETS: Record<DemoSpecialty, number> = {
-    "Dermatology": 0, "Cardiology": 2, "Primary Care": 4, "Dentistry": 1,
-  };
-  const offset = SPECIALTY_OFFSETS[specialty];
-
-  const perCategoryResults = await Promise.all(
-    categories.map((cat) =>
-      db.product.findMany({
-        where: { category: cat as ProductCategory },
-        orderBy: { name: "asc" },
-        skip: offset,
-        take: counts[cat] ?? 2,
-      })
+  const nameList = SPECIALTY_PRODUCTS[specialty];
+  const products = nameList
+    .map((fragment) =>
+      allProducts.find((p) => p.name.toLowerCase().includes(fragment.toLowerCase()))
     )
-  );
-
-  // Products to exclude per specialty (by partial name match, case-insensitive)
-  const EXCLUDE_NAMES: Partial<Record<DemoSpecialty, string[]>> = {
-    "Dentistry":   ["pulse ox", "blood pressure","emergen-c"],
-    "Dermatology": ["pulse ox"],
-    "Cardiology":  ["emergen-c"],
-  };
-  const excludePatterns = (EXCLUDE_NAMES[specialty] ?? []).map((s) => s.toLowerCase());
-
-  // Interleave: one from each category in rotation until we hit 12
-  const byCategory = perCategoryResults.map((arr) =>
-    arr.filter((p) => !excludePatterns.some((ex) => p.name.toLowerCase().includes(ex)))
-  );
-  const products = [];
-  let remaining = 12;
-  while (remaining > 0 && byCategory.some((arr) => arr.length > 0)) {
-    for (const arr of byCategory) {
-      if (arr.length > 0 && remaining > 0) {
-        products.push(arr.shift()!);
-        remaining--;
-      }
-    }
-  }
+    .filter((p): p is NonNullable<typeof p> => p !== undefined);
 
   const session = await auth();
   const isSignedIn = !!session?.user;
@@ -97,6 +119,7 @@ export default async function StoreDemoPage({ searchParams }: StorePageProps) {
       <DoctorNav session={session} hideLogo />
 
       <StorefrontHeader
+        key={specialty}
         displayName={provider.name}
         specialty={provider.specialty}
         practiceName={null}

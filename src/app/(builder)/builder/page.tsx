@@ -43,9 +43,17 @@ function BuilderContent() {
   const [kitCreationInitial, setKitCreationInitial] = useState<{ productIds: string[]; name: string }>({ productIds: [], name: "" });
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const [sidebarGlowActive, setSidebarGlowActive] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   // Maps temporary rf_<ASIN> ids → real DB product ids after background save
   const rfIdMap = useRef<Map<string, string>>(new Map());
+
+  // Trigger sidebar glow once for signed-out users after session resolves
+  useEffect(() => {
+    if (sessionStatus !== "loading" && !isSignedIn) {
+      setSidebarGlowActive(true);
+    }
+  }, [sessionStatus, isSignedIn]);
 
   // Load products (always); picks/profile/kits only when signed in
   useEffect(() => {
@@ -500,6 +508,7 @@ function BuilderContent() {
             sending={sending}
             error={sendError}
             onSaveAsKit={isSignedIn && cartItems.length >= 2 ? handleSaveAsKit : undefined}
+            shimmerOnMount={sidebarGlowActive && !isSignedIn}
           />
         </div>
       )}

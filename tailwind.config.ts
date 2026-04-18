@@ -75,6 +75,7 @@ const config: Config = {
         "pop": "pop 0.2s ease-out",
         "pulse-once": "pulseOnce 0.4s ease-out",
         "kit-appear": "kitAppear 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+        "sidebar-glow": "sidebarGlow 2.8s ease-in-out 0.7s 1 forwards",
       },
       keyframes: {
         fadeIn: {

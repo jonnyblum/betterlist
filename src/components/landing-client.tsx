@@ -13,38 +13,57 @@ interface CardProduct {
   price: string;
   originalPrice?: string;
   bg: string;
+  imageUrl?: string;
 }
+
+const IMG = {
+  naturesBountyOmega: "https://m.media-amazon.com/images/I/71b2qlKnCxL.jpg",
+  natureMadeVitD3: "https://m.media-amazon.com/images/I/7188k6NiDhL.jpg",
+  pureEncapsMagnesium: "https://m.media-amazon.com/images/I/71xzWlvjHAL.jpg",
+  ceraveCreame: "https://m.media-amazon.com/images/I/61EidjXUBrL.jpg",
+  eltamdUvClear: "https://m.media-amazon.com/images/I/71aXlh7do4L.jpg",
+  calm: "https://cdn.prod.website-files.com/6718da5ecf694c9af0e8d5d7/674882c013cdf90323f77da1_Typeform-Blog-Header-IS-Calm-Customer-Story.webp",
+  oralBPro1000: "https://m.media-amazon.com/images/I/51kRDDGhgQL.jpg",
+  crestProToothpaste: "https://m.media-amazon.com/images/I/41XP8ysKo7L.jpg",
+  appleWatch11: "https://m.media-amazon.com/images/I/6112sjA9ClL.jpg",
+  waterpikAquarius: "https://m.media-amazon.com/images/I/71HHjGC1mFL.jpg",
+  bayerAspirin81: "https://m.media-amazon.com/images/I/71IvzZ5EL0L.jpg",
+  omronPlatinum: "https://m.media-amazon.com/images/I/71cSxyokoSL.jpg",
+  myFitnessPal: "https://cdn.prod.website-files.com/61713dc07218ee71af5413af/6964e210903fcbcd0f2ea175_MyFitnessPal%20Cost%20Breakdown-1-min.jpg",
+  garminForerunner265: "https://m.media-amazon.com/images/I/71-wnp+C-eL.jpg",
+  noom: "https://hips.hearstapps.com/hmg-prod/images/noom-app-index-1548870898.png",
+};
 
 const CARD_PRODUCTS: Record<Specialty, CardProduct[]> = {
   All: [
-    { emoji: "💊", brand: "Garden of Life", name: "Magnesium Glycinate", price: "$22.99", originalPrice: "$29.99", bg: "bg-sky-50" },
-    { emoji: "☀️", brand: "Thorne", name: "Vitamin D3 + K2", price: "$18.99", bg: "bg-peach-50" },
-    { emoji: "🐟", brand: "Nordic Naturals", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sage-50" },
-    { emoji: "🦷", brand: "Burst", name: "Sonic Electric Toothbrush", price: "$49.99", bg: "bg-sage-50" },
+    { emoji: "💊", brand: "Pure Encapsulations", name: "Magnesium Glycinate", price: "$22.99", originalPrice: "$29.99", bg: "bg-sky-50", imageUrl: IMG.pureEncapsMagnesium },
+    { emoji: "🐟", brand: "Nature's Bounty", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sage-50", imageUrl: IMG.naturesBountyOmega },
+    { emoji: "🫀", brand: "Omron", name: "Blood Pressure Monitor", price: "$74.00", originalPrice: "$89.99", bg: "bg-peach-50", imageUrl: IMG.omronPlatinum },    
+    { emoji: "⌚", brand: "Apple", name: "Apple Watch 11", price: "$299.00", bg: "bg-sage-50", imageUrl: IMG.appleWatch11 },
   ],
   Dermatology: [
-    { emoji: "🧴", brand: "CeraVe", name: "Moisturizing Cream", price: "$16.97", bg: "bg-sage-50" },
-    { emoji: "☀️", brand: "EltaMD", name: "UV Clear SPF 46", price: "$37.00", originalPrice: "$42.00", bg: "bg-peach-50" },
-    { emoji: "💊", brand: "Nordic Naturals", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sky-50" },
-    { emoji: "📱", brand: "Calm", name: "Meditation & Sleep App", price: "Free", bg: "bg-sage-50" },
+    { emoji: "🧴", brand: "CeraVe", name: "Moisturizing Cream", price: "$16.97", bg: "bg-sage-50", imageUrl: IMG.ceraveCreame },
+    { emoji: "☀️", brand: "EltaMD", name: "UV Clear SPF 46", price: "$37.00", originalPrice: "$42.00", bg: "bg-peach-50", imageUrl: IMG.eltamdUvClear },
+    { emoji: "💊", brand: "Nature's Bounty", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sky-50", imageUrl: IMG.naturesBountyOmega },
+    { emoji: "📱", brand: "Calm", name: "Meditation & Sleep App", price: "Free", bg: "bg-sage-50", imageUrl: IMG.calm },
   ],
   Dental: [
-    { emoji: "🪥", brand: "Oral-B", name: "Pro 1000 Electric Toothbrush", price: "$49.99", originalPrice: "$59.99", bg: "bg-sage-50" },
-    { emoji: "🦷", brand: "Sensodyne", name: "Pronamel Toothpaste", price: "$9.97", bg: "bg-sky-50" },
-    { emoji: "🚿", brand: "Waterpik", name: "Aquarius Water Flosser", price: "$54.00", bg: "bg-peach-50" },
-    { emoji: "💊", brand: "Nordic Naturals", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sage-50" },
+    { emoji: "🪥", brand: "Oral-B", name: "Pro 1000 Electric Toothbrush", price: "$49.99", originalPrice: "$59.99", bg: "bg-sage-50", imageUrl: IMG.oralBPro1000 },
+    { emoji: "🦷", brand: "Crest", name: "Detoxify Toothpaste", price: "$9.97", originalPrice: "$12.99", bg: "bg-sky-50", imageUrl: IMG.crestProToothpaste },
+    { emoji: "🚿", brand: "Waterpik", name: "Aquarius Water Flosser", price: "$54.00", bg: "bg-peach-50", imageUrl: IMG.waterpikAquarius },
+    { emoji: "💊", brand: "Nature's Bounty", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sage-50", imageUrl: IMG.naturesBountyOmega },
   ],
   Cardiology: [
-    { emoji: "⌚", brand: "Withings", name: "ScanWatch 2", price: "$299.00", bg: "bg-sage-50" },
-    { emoji: "🫀", brand: "OMRON", name: "Platinum BP Monitor", price: "$74.00", originalPrice: "$89.99", bg: "bg-peach-50" },
-    { emoji: "💊", brand: "Nordic Naturals", name: "Omega-3 Fish Oil", price: "$28.99", originalPrice: "$34.99", bg: "bg-sky-50" },
-    { emoji: "📱", brand: "MyFitnessPal", name: "Nutrition Tracker", price: "Free", bg: "bg-peach-50" },
+    { emoji: "⌚", brand: "Apple", name: "Apple Watch 11", price: "$299.00", bg: "bg-sage-50", imageUrl: IMG.appleWatch11 },
+    { emoji: "🫀", brand: "Omron", name: "Blood Pressure Monitor", price: "$74.00", originalPrice: "$89.99", bg: "bg-peach-50", imageUrl: IMG.omronPlatinum },
+    { emoji: "💊", brand: "Bayer", name: "Aspirin 81 mg", price: "$14.99", bg: "bg-sky-50", imageUrl: IMG.bayerAspirin81 },
+    { emoji: "📱", brand: "MyFitnessPal", name: "Nutrition Tracker", price: "Free", bg: "bg-peach-50", imageUrl: IMG.myFitnessPal },
   ],
   "Primary": [
-    { emoji: "💊", brand: "Thorne", name: "Vitamin D3", price: "$18.99", bg: "bg-sage-50" },
-    { emoji: "🌿", brand: "Garden of Life", name: "Probiotics", price: "$27.00", originalPrice: "$35.00", bg: "bg-peach-50" },
-    { emoji: "⌚", brand: "Garmin", name: "Forerunner 265", price: "$349.99", bg: "bg-sky-50" },
-    { emoji: "📱", brand: "Noom", name: "Weight Management", price: "Free", bg: "bg-sage-50" },
+    { emoji: "🌿", brand: "Pure Encapsulations", name: "Magnesium Glycinate", price: "$22.99", originalPrice: "$29.99", bg: "bg-sky-50", imageUrl: IMG.pureEncapsMagnesium },
+    { emoji: "⌚", brand: "Garmin", name: "Forerunner 265", price: "$319.99", originalPrice: "$349.99", bg: "bg-sky-50", imageUrl: IMG.garminForerunner265 },   
+    { emoji: "💊", brand: "Nature Made", name: "Vitamin D3", price: "$18.99", bg: "bg-peach-50", imageUrl: IMG.natureMadeVitD3 },
+    { emoji: "📱", brand: "Noom", name: "Weight Management", price: "Free", bg: "bg-sage-50", imageUrl: IMG.noom },
   ],
 };
 
@@ -228,8 +247,19 @@ export function LandingClient() {
                 <div className="divide-y divide-black/[0.04]" style={{ opacity: contentOpacity, transition: "opacity 200ms ease" }}>
                   {CARD_PRODUCTS[displayedTab].map((p) => (
                     <div key={p.name} className="flex items-center gap-3 px-5 py-3">
-                      <div className={`w-10 h-10 rounded-xl ${p.bg} flex items-center justify-center text-lg flex-shrink-0`}>
-                        {p.emoji}
+                      <div className={`w-10 h-10 rounded-xl ${p.bg} flex items-center justify-center text-lg flex-shrink-0 overflow-hidden`}>
+                        {p.imageUrl ? (
+                          <img
+                            src={p.imageUrl}
+                            alt={p.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              e.currentTarget.nextElementSibling?.classList.remove("hidden");
+                            }}
+                          />
+                        ) : null}
+                        <span className={p.imageUrl ? "hidden" : ""}>{p.emoji}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] text-muted truncate">{p.brand}</p>

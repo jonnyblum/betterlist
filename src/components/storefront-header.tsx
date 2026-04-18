@@ -7,6 +7,11 @@ import { SignInModal } from "@/components/sign-in-modal";
 
 // ─── Avatar color palette (matches recommendation-receipt.tsx) ─────────────────
 
+const MOBILE_SPECIALTY_LABEL: Record<string, string> = {
+  "Primary Care": "Primary",
+  "Dentistry": "Dental",
+};
+
 const AVATAR_PALETTE = [
   { bg: "rgba(135,168,120,0.16)", text: "#3a6b2f", pillBg: "rgba(135,168,120,0.11)" },
   { bg: "rgba(110,175,210,0.18)", text: "#1e6f95", pillBg: "rgba(110,175,210,0.11)" },
@@ -154,8 +159,9 @@ export function StorefrontHeader({
 
   return (
     <>
-      <div className="bg-white border-b border-black/[0.06] px-4 sm:px-6 lg:px-16 py-8">
-        <div className="max-w-[1100px] mx-auto flex items-start justify-between gap-4">
+      <div className="bg-white border-b border-black/[0.06] px-4 sm:px-6 lg:px-16 pt-6 pb-4 sm:py-6">
+        <div className="max-w-[1100px] mx-auto flex flex-col gap-0">
+        <div className="flex items-start justify-between gap-4">
           {/* Left: avatar + info */}
           <div className="flex items-center gap-4">
             {/* Avatar */}
@@ -236,30 +242,6 @@ export function StorefrontHeader({
               <p className="text-sm text-muted mt-1.5">
                 Products I recommend to my patients
               </p>
-
-              {demoSpecialties && demoSpecialties.length > 0 && (
-                <div className="mt-3">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] text-[#999] font-medium">Previewing as:</span>
-                    {demoSpecialties.map((s) => {
-                      const isActive = s === demoActiveSpecialty;
-                      return (
-                        <Link
-                          key={s}
-                          href={`/store?specialty=${encodeURIComponent(s)}`}
-                          className={[
-                            "px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all",
-                            isActive ? "" : "bg-black/[0.06] text-muted hover:text-foreground hover:bg-black/[0.1]",
-                          ].join(" ")}
-                          style={isActive ? { background: color.pillBg, color: color.text } : undefined}
-                        >
-                          {s}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -411,6 +393,32 @@ export function StorefrontHeader({
             )}
           </div>
         </div>
+
+        {/* Previewing as — full-width row below avatar+info on all screen sizes */}
+        {demoSpecialties && demoSpecialties.length > 0 && (
+          <div className="mt-4 sm:mt-5 flex flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <span className="sm:hidden text-[11px] text-[#999] font-medium">Preview:</span>
+            <span className="hidden sm:inline text-[11px] text-[#999] font-medium">Previewing as:</span>
+            {demoSpecialties.map((s) => {
+              const isActive = s === demoActiveSpecialty;
+              return (
+                <Link
+                  key={s}
+                  href={`/store?specialty=${encodeURIComponent(s)}`}
+                  className={[
+                    "px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all",
+                    isActive ? "" : "bg-black/[0.06] text-muted hover:text-foreground hover:bg-black/[0.1]",
+                  ].join(" ")}
+                  style={isActive ? { background: color.pillBg, color: color.text } : undefined}
+                >
+                  <span className="sm:hidden">{MOBILE_SPECIALTY_LABEL[s] ?? s}</span>
+                  <span className="hidden sm:inline">{s}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
       </div>
 
       {/* Edit profile modal */}

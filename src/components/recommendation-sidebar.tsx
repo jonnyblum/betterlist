@@ -1,5 +1,6 @@
 "use client";
 
+import { INTRO_EFFECTS_ENABLED } from "@/lib/feature-flags";
 import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -102,6 +103,7 @@ interface RecommendationSidebarProps {
   sending: boolean;
   error: string;
   onSaveAsKit?: () => void;
+  shimmerOnMount?: boolean;
 }
 
 function validateIdentifier(value: string): boolean {
@@ -119,6 +121,7 @@ export function RecommendationSidebar({
   sending,
   error,
   onSaveAsKit,
+  shimmerOnMount,
 }: RecommendationSidebarProps) {
   const [noteOpen, setNoteOpen] = useState(false);
   const isValid = items.length > 0 && validateIdentifier(patientIdentifier);
@@ -206,15 +209,20 @@ export function RecommendationSidebar({
         />
 
         {/* Send button */}
-        <Button
-          fullWidth
-          size="lg"
-          onClick={onSend}
-          loading={sending}
-          disabled={!isValid}
-        >
-          Send Recommendation
-        </Button>
+        <div className="relative overflow-hidden rounded-xl">
+          <Button
+            fullWidth
+            size="lg"
+            onClick={onSend}
+            loading={sending}
+            disabled={!isValid}
+          >
+            Send Recommendation
+          </Button>
+          {INTRO_EFFECTS_ENABLED && shimmerOnMount && (
+            <div className="shimmer-sweep" aria-hidden="true" />
+          )}
+        </div>
       </div>
     </div>
   );

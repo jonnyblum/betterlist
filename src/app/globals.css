@@ -46,6 +46,95 @@ body {
   to { transform: translateY(-50%); }
 }
 
+/* Sidebar intro glow — two soft pulses then fades (signed-out builder page) */
+@keyframes sidebarGlow {
+  0% {
+    box-shadow: 0 0 0 0px rgba(135, 168, 120, 0),
+                0 0 0 0px rgba(125, 185, 212, 0),
+                0 0 0 0px rgba(232, 168, 124, 0);
+  }
+  20% {
+    box-shadow: 0 0 0 2px rgba(135, 168, 120, 0.75),
+                0 0 0 6px rgba(125, 185, 212, 0.85),
+                0 0 0 9px rgba(232, 168, 124, 0.75),
+                0 0 26px rgba(125, 185, 212, 0.2);
+  }
+  40% {
+    box-shadow: 0 0 0 1px rgba(135, 168, 120, 0.25),
+                0 0 0 4px rgba(125, 185, 212, 0.18),
+                0 0 0 6px rgba(232, 168, 124, 0.12),
+                0 0 13px rgba(125, 185, 212, 0.07);
+  }
+  62% {
+    box-shadow: 0 0 0 2px rgba(232, 168, 124, 0.75),
+                0 0 0 6px rgba(125, 185, 212, 0.85),
+                0 0 0 9px rgba(135, 168, 120, 0.75),
+                0 0 26px rgba(232, 168, 124, 0.2);
+  }
+  82% {
+    box-shadow: 0 0 0 1px rgba(125, 185, 212, 0.25),
+                0 0 0 4px rgba(232, 168, 124, 0.16),
+                0 0 0 6px rgba(135, 168, 120, 0.1),
+                0 0 13px rgba(125, 185, 212, 0.06);
+  }
+  100% {
+    box-shadow: 0 0 0 0px rgba(135, 168, 120, 0),
+                0 0 0 0px rgba(125, 185, 212, 0),
+                0 0 0 0px rgba(232, 168, 124, 0);
+  }
+}
+
+.sidebar-glow-once {
+  animation: sidebarGlow 2.8s ease-in-out 0.5s 1 forwards;
+}
+
+/* Button shimmer sweep — brand-color sparkle left-to-right */
+@keyframes shimmerSweep {
+  0%   { transform: translateX(-160%) skewX(-12deg); }
+  100% { transform: translateX(320%) skewX(-12deg); }
+}
+
+.shimmer-sweep {
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(135, 168, 120, 0.75) 18%,
+    rgba(255, 255, 255, 0.5) 36%,
+    rgba(125, 185, 212, 0.85) 50%,
+    rgba(255, 255, 255, 0.5) 64%,
+    rgba(232, 168, 124, 0.75) 82%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: shimmerSweep 3.3s ease-in-out 0.15s 1 forwards;
+  transform: translateX(-160%) skewX(-12deg);
+}
+
+/* Text shimmer — for light backgrounds, tints the text hue */
+.shimmer-sweep-text {
+  position: absolute;
+  inset: 0;
+  width: 60%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(135, 168, 120, 0.9) 18%,
+    rgba(255, 255, 255, 0.5) 36%,
+    rgba(125, 185, 212, 1) 50%,
+    rgba(255, 255, 255, 0.5) 64%,
+    rgba(232, 168, 124, 0.9) 82%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: shimmerSweep 3.3s ease-in-out 0.15s 1 forwards;
+  transform: translateX(-160%) skewX(-12deg);
+}
+
 /* Floating chip animation */
 @keyframes chipFloat {
   0%, 100% { transform: translateY(0); }
@@ -68,6 +157,14 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Scrollbar styling */
